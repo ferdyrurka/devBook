@@ -5,7 +5,8 @@
         <title>{% block title %}DevBook{% endblock %}</title>
         <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
 
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 
         <link rel="stylesheet" href="/media/css/bootstrap.min.css">
         <link rel="stylesheet" href="/media/css/style.css">
@@ -21,22 +22,33 @@
 
     <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <a class="navbar-brand" href="/">LukSta BookStore</a>
+            <a class="navbar-brand" href="/">DevBook</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
-                    {% if is_granted('ROLE_USER') == false %}
-
-                    {% else %}
-
+                    {% if is_granted('ROLE_USER') == true %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">{{ app.getUser.getFirstName }}</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-comment"></i></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-user-friends"></i></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                        </li>
                     {% endif %}
                 </ul>
             </div>
         </nav>
     </header>
+
+    {% block modaltemplate %}{% endblock %}
 
     {% block body %}{% endblock %}
         {% block javascripts %}{% endblock %}
