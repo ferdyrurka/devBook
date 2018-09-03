@@ -1,0 +1,165 @@
+body{
+    font-family: 'Roboto', sans-serif;
+}
+
+/**
+ * FontAwesome icon
+ */
+
+.fas{
+    transition: all 0.3s ease-in-out;
+}
+
+.fas:hover{
+    transition: all 0.3s ease-in-out;
+}
+
+/**
+    Add post
+ */
+
+.add-post-textarea{
+    width: 100%;
+    resize: none;
+    height: 200px;
+    border-top: 1px solid #808080;
+    border-bottom: 1px solid #808080;
+    border-radius: 2px;
+    padding: 5px 10px;
+    outline: none;
+}
+
+.add-post-modal-button{
+    height: 80px !important;
+}
+
+/**
+ * Post
+ */
+
+.post{
+    border: 1px solid #a6a6a6;
+    padding: 15px 0px 15px 0px;
+    border-radius: 3px;
+}
+
+.post-content{
+    padding: 15px 15px;
+    font-size: 14px;
+    border-bottom: 1px solid #343a40;
+}
+
+.user-link-wrraper{
+    padding: 0 15px;
+}
+
+.user-link{
+    text-decoration: none !important;
+    color: #ffa31a;
+    transition: all 0.5s ease-in-out;
+}
+
+.user-link:hover{
+    color: #cc7a00;
+    transition: all 0.5s ease-in-out;
+}
+
+.post-icon-wrraper{
+    padding-top: 10px;
+    width: 100%;
+    height: auto;
+}
+
+.post-icon{
+    width: 50%;
+    text-align: center;
+    float: left;
+    padding: 0 8px;
+    color: #4d4d4d;
+}
+
+/**
+ * Icon
+ */
+
+.git-post{
+    padding-right: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.git-post:hover{
+    color: #cc0000;
+    transition: all 0.3s ease-in-out;
+}
+
+.fa-git{
+    font-size: 20px;
+}
+
+.fa-code-branch{
+    font-size: 20px;
+}
+
+.share-post{
+    border-left: 1px solid #4d4d4d;
+    padding-right: 5px;
+    cursor: pointer;
+}
+
+.share-post:hover{
+    color: #005ce6;
+    transition: all 0.3s ease-in-out;
+}
+
+/**
+ * Modal template
+ */
+
+.modal-mask {
+    position: fixed;
+    z-index: 9998;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, .5);
+    display: table;
+    transition: opacity .3s ease;
+}
+
+.modal-wrapper {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.modal-container {
+    width: 60%;
+    margin: 0px auto;
+    padding: 20px 30px;
+    background-color: #fff;
+    border-radius: 2px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+    transition: all .3s ease;
+}
+
+.modal-header h3 {
+    margin-top: 0;
+    color:  #262626;
+}
+
+.modal-body {
+    margin: 20px 0;
+}
+
+.modal-default-button {
+    float: right;
+}
+
+.modal-enter {
+    opacity: 0;
+}
+
+.modal-leave-active {
+    opacity: 0;
+}
