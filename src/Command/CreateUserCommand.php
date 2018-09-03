@@ -5,6 +5,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * Class CreateUserCommand
@@ -19,6 +20,11 @@ class CreateUserCommand implements CommandInterface
     private $entityManager;
 
     /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordEncoder;
+
+    /**
      * @var User
      */
     private $user;
@@ -26,9 +32,11 @@ class CreateUserCommand implements CommandInterface
     /**
      * CreateUserCommand constructor.
      * @param EntityManagerInterface $entityManager
+     * @param UserPasswordEncoderInterface $passwordEncoder
      */
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, UserPasswordEncoderInterface $passwordEncoder)
     {
+        $this->passwordEncoder = $passwordEncoder;
         $this->entityManager = $entityManager;
     }
 
@@ -48,6 +56,7 @@ class CreateUserCommand implements CommandInterface
         $this->user->setCreatedAt($time);
         $this->user->setRoles('ROLE_USER');
         $this->user->setStatus(1);
+        $this->user->setPassword($this->passwordEncoder->encodePassword($this->user, $this->user->getPlainPassword()));
 
         $this->entityManager->persist($this->user);
         $this->entityManager->flush();
