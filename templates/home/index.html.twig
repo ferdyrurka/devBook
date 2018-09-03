@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container" style="margin-top: 50px;">
+        <div class="row">
+            <div class="col-md-6 col-12">
+                {{ form_start(signIn) }}
+                {{ form_widget(signIn) }}
+                {{ form_end(signIn) }}
+            </div>
+            <div class="col-md-6 col-12">
+                {{ form_start(signUp) }}
+                {{ form_widget(signUp) }}
+                {{ form_end(signUp) }}
+            </div>
+        </div>
+    </div>
+{% endblock %}
