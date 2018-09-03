@@ -28,12 +28,6 @@ class Post
     private $content;
 
     /**
-     * @var integer
-     * @ORM\Column(type="integer", length=11)
-     */
-    private $userId;
-
-    /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=20)
      */
