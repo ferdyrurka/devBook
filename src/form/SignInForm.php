@@ -64,6 +64,7 @@ class SignInForm extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
+            'action' => '/sign-in',
             'csrf_protection' => true,
             'csrf_field_name' => '_token',
             'csrf_token_id' => 'sign_in.token',
