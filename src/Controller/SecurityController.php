@@ -7,6 +7,7 @@ use App\Command\CreateUserCommand;
 use App\Entity\User;
 use App\Form\SignUpForm;
 use App\Service\CommandService;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -36,10 +37,30 @@ class SecurityController extends Controller
 
             $commandService = new CommandService();
             $commandService->setCommand($command)->execute();
+
+            return $this->redirectToRoute('index.home');
         }
 
         return $this->forward(HomeController::class . '::indexAction', [
             'request' => $request,
         ]);
+    }
+
+    /**
+     * @Route("/sign-in", methods={"POST"})
+     * @Security("not has_role('ROLE_USER')")
+     */
+    public function signInAction(): void
+    {
+        //Do nothing
+    }
+
+    /**
+     * @Route("/log-out", methods={"GET"})
+     * @IsGranted("ROLE_USER")
+     */
+    public function logoutAction(): void
+    {
+       //Do nothing
     }
 }

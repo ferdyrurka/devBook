@@ -23,7 +23,7 @@ class HomeController extends Controller
      * @param Request $request
      * @return array
      *
-     * @Route("/", methods={"GET", "POST"}, name="index.home")
+     * @Route("/", methods={"GET"}, name="index.home")
      * @Template("home/index.html.twig")
      * @Security("not has_role('ROLE_USER')")
      */
@@ -37,7 +37,7 @@ class HomeController extends Controller
 
         return [
             'signIn' => $signIn->createView(),
-            'signUp' => $signUp->createView()
+            'signUp' => $signUp->createView(),
         ];
     }
 }
