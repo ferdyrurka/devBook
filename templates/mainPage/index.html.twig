@@ -10,12 +10,12 @@
                         <div class="modal-header">
                             <slot name="header">
                             </slot>
-                            <i class="fas fa-times-circle" @click="$emit('close')" style="cursor: pointer;"></i>
+                            <i class="fas fa-times-circle" @click="$emit('close')" style="cursor: pointer; font-size: 20px;"></i>
                         </div>
 
                         <div class="modal-body">
                             <slot name="body">
-                                <textarea placeholder="{% trans %}Write something{% endtrans %}" class="add-post-textarea"  name="postValue">
+                                <textarea placeholder="{% trans %}Write something{% endtrans %}" class="add-post-textarea postContent">
 
                                 </textarea>
                             </slot>
@@ -23,7 +23,7 @@
 
                         <div class="modal-footer">
                             <slot name="footer">
-                                <button class="btn btn-dark" @click="$emit('close')">
+                                <button class="btn btn-dark" @click="addPost(); $emit('close')">
                                     {% trans %}Public post{% endtrans %}
                                 </button>
                             </slot>
@@ -38,62 +38,116 @@
 
 {% block body %}
     <div style="padding: 15px;"></div>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col-12" style="padding: 0 !important;">
-                <div id="add-post">
-                    <textarea class="add-post-textarea add-post-modal-button" placeholder="{% trans %}What's up{% endtrans %} {{ app.getUser.getFirstName }}" readonly id="show-modal" @click="showModal = true">
-                    </textarea>
-                    <modal v-if="showModal" @close="showModal = false">
-                        <h3 slot="header">{% trans %}Add post{% endtrans %}</h3>
-                    </modal>
-                </div>
+
+            <!-- Propose -->
+
+            <div class="col-lg-2">
+
             </div>
-            <div style="padding: 15px"></div>
 
-            <!-- Other posts -->
+            <div class="col-lg-1"></div>
 
-            <div class="col-12 post">
-                <div class="user-link-wrraper">
-                    <a class="user-link" href="#">Aleksandra Filak</a>
-                </div>
-                <div class="post-content">
-                    <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum sed massa mi. Curabitur posuere augue id velit aliquet,
-                        id ultricies magna ultricies. Quisque sed nisl vel justo tincidunt faucibus eget ac arcu. Morbi placerat, ante quis consequat sagittis,
-                        libero justo sagittis felis, eu volutpat justo risus vel nibh. Vivamus convallis, massa a consectetur iaculis, quam nibh venenatis metus,
-                        ac commodo nisi libero vitae massa. Maecenas non venenatis sapien. Nam ut odio vitae leo finibus
-                        laoreet in id risus. Donec vulputate, odio et euismod porta, urna augue placerat neque, ut iaculis neque purus eu leo.
-                        Morbi velit leo, feugiat ac viverra vitae, suscipit sit amet sapien. Maecenas dapibus vel libero sit amet convallis.
-                        In facilisis blandit lorem vel ultricies. Sed nulla purus, dapibus et nisi a, ullamcorper molestie felis. Phasellus eget nunc nulla. Fusce nec fringilla lectus, et scelerisque turpis. Curabitur sit amet gravida nisl. Nulla eu hendrerit sapien. Nam eget orci hendrerit, aliquam turpis non, gravida elit. Suspendisse in feugiat massa. Interdum et malesuada fames ac ante ipsum primis in faucibus. Aenean quis nunc fringilla, fringilla lectus quis, faucibus turpis. Nam vitae porta mi.
-                    </p>
-                </div>
-                <div class="post-icon-wrraper">
-                    <div class="post-icon git-post">
-                        <i class="fab fa-git"></i>
-                        <strong>Git!</strong>
-                    </div>
-                    <div class="post-icon share-post">
-                        <i class="fas fa-code-branch"></i>
-                        <strong>{% trans %}Share{% endtrans %}</strong>
+            <!-- Posts -->
+
+            <div class="col-md-12 col-lg-6">
+                <div class="alert-add-post"></div>
+                <div class="col-12" style="padding: 0 !important;">
+                    <div id="add-post">
+                        <textarea class="add-post-textarea add-post-modal-button" placeholder="{% trans %}What's up{% endtrans %} {{ app.getUser.getFirstName }}" readonly id="show-modal" @click="showModal = true">
+                        </textarea>
+                        <modal v-if="showModal" @close="showModal = false">
+                            <h3 slot="header">{% trans %}Add post{% endtrans %}</h3>
+                        </modal>
                     </div>
                 </div>
+                <div style="padding: 15px"></div>
+
+                <!-- Other posts -->
+
+                <div class="post-container"></div>
             </div>
+
+
+            <div class="col-lg-1"></div>
+
+            <!-- Chat -->
+
+            <div class="col-lg-2">
+
+            </div>
+
         </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
+
+    <!-- Load post -->
+
+    <script>
+        $(document).ready(function() {
+            $.ajax({
+                type: "GET",
+                url: "/api/posts"
+            }).done(function (res) {
+                var postAjax = res['posts'];
+                var posts = '';
+
+                if (postAjax !== null) {
+                    postAjax.forEach(
+                        function (post) {
+                            var postsFor;
+
+                            postsFor = '<div class="col-12 post">' +
+                                '<div class="user-link-wrraper"><a class="user-link" href="#">'
+                                + post['author'] + '</a></div><div class="post-content"><p>'
+                                + post['content'] + '</p></div><div class="post-icon-wrraper"><div class="post-icon git-post"><i class="fab fa-git"></i><strong>Git!</strong></div>' +
+                                '<div class="post-icon share-post"><i class="fas fa-code-branch"></i><strong>Share</strong></div></div></div>';
+
+                            posts = posts + postsFor;
+                        }
+                    )
+                }
+
+                $(".post-container").html(posts);
+            })
+        })
+    </script>
+
+    <!-- Modal template -->
+
     <script>
         Vue.component('modal', {
-            template: '#add-post-modal'
-        })
+            template: '#add-post-modal',
+            methods: {
+                addPost: function (event) {
+                    $(document).ready(function () {
+                        $.ajax({
+                            type: "POST",
+                            url: "/add-post",
+                            data: {
+                                content: $(".postContent").val(),
+                            }
+                        }).done(function (res) {
+                            console.log(res);
+                            if (res['success'] === true) {
+                                $(".alert-add-post").text("{% trans %}Posts added. Want view post? Refresh a page!{% endtrans %}");
+                            }
+                        }).fail(function () {
+                            console.log('Fail added post.');
+                        })
+                    });
+                }
+            }
+        });
 
         new Vue({
             el: '#add-post',
             data: {
-                showModal: false
-            }
-        })
+                showModal: false,
+            },
+        });
     </script>
 {% endblock %}
