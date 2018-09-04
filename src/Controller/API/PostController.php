@@ -24,4 +24,14 @@ class PostController extends Controller
     {
         return new JsonResponse($service->getPostsList());
     }
+
+    /**
+     * @return JsonResponse
+     * @Route("/add-post", methods={"POST"}, name="addPost.post")
+     * @IsGranted("ROLE_USER")
+     */
+    public function addPost(): JsonResponse
+    {
+        return new JsonResponse(['success' => true]);
+    }
 }
