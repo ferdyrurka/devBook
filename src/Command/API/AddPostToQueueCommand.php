@@ -35,12 +35,12 @@ class AddPostToQueueCommand implements CommandInterface
     /**
      * @param string $content
      */
-    public function setContent(string $content)
+    public function setContent(string $content): void
     {
         $this->content = $content;
     }
 
-    public function execute()
+    public function execute(): void
     {
         $addPost = new AddPost();
         $addPost->setUser($this->user);
