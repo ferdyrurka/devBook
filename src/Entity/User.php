@@ -236,11 +236,11 @@ class User implements UserInterface, \Serializable
     }
 
     /**
-     * @return string
+     * @return \DateTime
      */
-    public function getCreatedAt(): string
+    public function getCreatedAt(): \DateTime
     {
-        return $this->createdAt->format('Y-m-d H:i:s');
+        return $this->createdAt;
     }
 
     /**
@@ -252,9 +252,9 @@ class User implements UserInterface, \Serializable
     }
 
     /**
-     * @return null|string
+     * @return \DateTime|null
      */
-    public function getDateBirth(): ?string
+    public function getDateBirth(): ?\DateTime
     {
         return $this->dateBirth;
     }
@@ -268,17 +268,17 @@ class User implements UserInterface, \Serializable
     }
 
     /**
-     * @return null|string
+     * @return int|null
      */
-    public function getSex(): ?string
+    public function getSex(): ?int
     {
         return $this->sex;
     }
 
     /**
-     * @param string $sex
+     * @param int $sex
      */
-    public function setSex(string $sex): void
+    public function setSex(int $sex): void
     {
         $this->sex = $sex;
     }
