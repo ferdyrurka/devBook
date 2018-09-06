@@ -19,10 +19,12 @@ class AddPostTest extends TestCase
     {
         $addPost = new AddPost();
         $addPost->setContent('Hello World');
-        $addPost->setUser(new User());
+        $addPost->setUserId(1);
 
         $amqpChannel = \Mockery::mock(AMQPChannel::class);
         $amqpChannel->shouldReceive('queue_declare')->once()->withArgs(['post', false, false, false]);
         $amqpChannel->shouldReceive('basic_publish')->once()->withArgs([AMQPMessage::class, '', 'post']);
+
+        $addPost->execute($amqpChannel);
     }
 }

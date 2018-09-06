@@ -6,7 +6,6 @@ namespace App\Composite\RabbitMQ\Send;
 use App\Composite\RabbitMQ\RabbitMQComponentAbstract;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
-use App\Entity\User;
 
 /**
  * Class AddPost
@@ -21,9 +20,9 @@ class AddPost extends RabbitMQComponentAbstract
     private $content;
 
     /**
-     * @var User
+     * @var integer
      */
-    private $user;
+    private $userId;
 
     /**
      * @param string $content
@@ -34,11 +33,11 @@ class AddPost extends RabbitMQComponentAbstract
     }
 
     /**
-     * @param User $user
+     * @param int $userId
      */
-    public function setUser(User $user)
+    public function setUserId(int $userId)
     {
-        $this->user = $user;
+        $this->userId = $userId;
     }
 
     /**
@@ -48,10 +47,14 @@ class AddPost extends RabbitMQComponentAbstract
     {
         $channel->queue_declare('post', false, false, false);
 
-        $message = new AMQPMessage([
-            'content' => $this->content,
-            'user' => $this->user,
-        ]);
+        $message = new AMQPMessage(
+            json_encode(
+                [
+                    'content' => $this->content,
+                    'userId' => $this->userId,
+                ]
+            )
+        );
 
         $channel->basic_publish($message, '', 'post');
     }
