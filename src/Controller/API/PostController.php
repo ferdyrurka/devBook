@@ -3,10 +3,13 @@ declare(strict_types=1);
 
 namespace App\Controller\API;
 
+use App\Command\API\AddPostToQueueCommand;
+use App\Service\CommandService;
 use App\Service\PostService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -26,12 +29,25 @@ class PostController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @param CommandService $service
      * @return JsonResponse
      * @Route("/add-post", methods={"POST"}, name="addPost.post")
      * @IsGranted("ROLE_USER")
      */
-    public function addPost(): JsonResponse
+    public function addPost(Request $request, CommandService $service): JsonResponse
     {
-        return new JsonResponse(['success' => true]);
+        if (!empty($content = $request->get('content'))) {
+            $command = new AddPostToQueueCommand();
+            $command->setUserId($this->getUser()->getId());
+            $command->setContent($content);
+
+            $service->setCommand($command);
+            $service->execute();
+
+            return new JsonResponse(['success' => true]);
+        }
+
+        return new JsonResponse(['content' => false]);
     }
 }
