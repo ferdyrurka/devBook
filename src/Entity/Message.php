@@ -29,6 +29,12 @@ class Message
     private $messages;
 
     /**
+     * @var string
+     * @ORM\Column(type="string", length=128)
+     */
+    private $sendUserToken;
+
+    /**
      * Message constructor.
      * @throws \Exception
      */
@@ -64,32 +70,16 @@ class Message
     /**
      * @return string
      */
-    public function getTo(): string
+    public function getSendUserToken(): string
     {
-        return $this->to;
+        return $this->sendUserToken;
     }
 
     /**
-     * @param string $to
+     * @param string $sendUserToken
      */
-    public function setTo(string $to): void
+    public function setSendUserToken(string $sendUserToken): void
     {
-        $this->to = $to;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFrom(): string
-    {
-        return $this->from;
-    }
-
-    /**
-     * @param string $from
-     */
-    public function setFrom(string $from): void
-    {
-        $this->from = $from;
+        $this->sendUserToken = $sendUserToken;
     }
 }
