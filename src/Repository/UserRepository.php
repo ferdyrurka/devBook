@@ -39,4 +39,35 @@ class UserRepository extends ServiceEntityRepository
 
         return $user;
     }
+
+    /**
+     * @param string $firstToken
+     * @param string $secondToken
+     * @return int
+     */
+    public function getCountByTokens(string $firstToken, string $secondToken): int
+    {
+        return $this->getEntityManager()
+            ->createQuery('
+                SELECT COUNT(p) FROM App:USER p WHERE p.token = :firstToken OR p.token = :secondToken
+            ')
+            ->setParameter(':firstToken', $firstToken)
+            ->setParameter(':secondToken', $secondToken)
+            ->execute();
+    }
+
+    /**
+     * @param string $token
+     * @return User
+     */
+    public function getOneByToken(string $token): User
+    {
+        $user = $this->findOneBy(['tokenMessenger' => $token]);
+
+        if (is_null($user)) {
+            throw new UserNotFoundException('User not found by token');
+        }
+
+        return $user;
+    }
 }
