@@ -26,6 +26,10 @@ class PostRepository extends ServiceEntityRepository
      */
     public function findAll(): ?array
     {
-        return parent::findAll();
+        return $this->getEntityManager()
+            ->createQuery('SELECT p FROM App:Post p ORDER BY p.createdAt DESC')
+            ->setMaxResults(22)
+            ->execute()
+            ;
     }
 }
