@@ -1,0 +1,106 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- Your conversation -->
+
+        <div class="col-md-3" style="padding: 0 !important;">
+            <div class="header-message col-12">
+                <span class="your-messages">
+                    {% trans %}Your interview{% endtrans %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Conversation -->
+
+        <div class="col-md-9" style="padding: 0 !important;">
+            <div class="header-message col-12">
+                <div class="row">
+                    <div class="col-8 name-message">
+                        Aleksandra Staniszewska
+                    </div>
+                    <div class="col-4 setting-message">
+                        <i class="fas fa-toolbox"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="container-fluid" style="height: 85%">
+    <div class="row"  style="height: 100%; max-width: 100%;">
+
+        <!-- Your conversation -->
+
+        <div class="col-md-3" style="padding: 0 !important;">
+
+            <div class="your-conversation">
+                <div class="name">
+                    <span>Lukasz Staniszewski</span>
+                </div>
+                <div class="last-message">
+                    Cześć co tam?
+                </div>
+            </div>
+
+            <div class="your-conversation-focus your-conversation">
+                <div class="name">
+                    <span>Lukasz Staniszewski</span>
+                </div>
+                <div class="last-message">
+                    Cześć co tam?
+                </div>
+            </div>
+
+            <div class="your-conversation">
+                <div class="name">
+                    <span>Lukasz Staniszewski</span>
+                </div>
+                <div class="last-message">
+                    Cześć co tam?
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Conversation -->
+
+        <div class="col-md-9" style="padding: 0 !important;">
+
+            <div class="conversation">
+            </div>
+
+            <!-- SendMessages -->
+
+            <div class="send-message">
+                <textarea id="send" class="send-message-input"  placeholder="{% trans %}Send message{% endtrans %}"></textarea>
+                <button class="send-message-btn">{% trans %}Send{% endtrans %}</button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+    <input type="hidden" class="conversationId" value="">
+
+    <script src="/media/js/devMessenger.js"></script>
+
+    <script>
+        send = new SendMessage("{{ userId }}");
+
+        $(".send-message-btn").click(function () {
+
+            var message = $(".send-message-input").val();
+
+            send.sendMessage(message, 'qwerty');
+        });
+    </script>
+
+{% endblock %}
