@@ -5,6 +5,7 @@ namespace App\Tests\Command;
 
 use App\Command\CreateUserCommand;
 use App\Entity\User;
+use App\Entity\UserToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -51,6 +52,7 @@ class CreateUserCommandTest extends TestCase
         $user->shouldReceive('setStatus')->withArgs([1])->once();
         $user->shouldReceive('setPassword')->once()->withArgs(['hash_password']);
         $user->shouldReceive('getPlainPassword')->once()->andReturn('qwertyuiop');
+        $user->shouldReceive('setUserTokenReferences')->once()->withArgs([UserToken::class]);
 
         $this->passwordEncoder
             ->shouldReceive('encodePassword')
@@ -59,7 +61,13 @@ class CreateUserCommandTest extends TestCase
             ->andreturn('hash_password')
         ;
 
-        $this->entityManager->shouldReceive('persist')->withArgs([User::class])->once();
+        $this->entityManager->shouldReceive('persist')->with(Mockery::on(function ($obj) {
+            if ($obj instanceof User || $obj instanceof UserToken) {
+                return true;
+            }
+
+            return false;
+        }))->times(2);
         $this->entityManager->shouldReceive('flush')->once();
 
         $this->createUserCommand->setUser($user);
