@@ -27,7 +27,7 @@ class ConversationRepository extends ServiceEntityRepository
      * @param int $receiveId
      * @return array|null
      */
-    public function findByUsersId(int $userId, int $receiveId): ?array
+    public function getCountByUsersId(int $userId, int $receiveId): array
     {
         return $this->getEntityManager()->createQuery(
             'SELECT COUNT(u) FROM App:Conversation p JOIN p.userReferences u WHERE p.id = :userId AND u.id = :receiveId'
