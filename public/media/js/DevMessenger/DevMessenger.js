@@ -1,4 +1,4 @@
-class SendMessage
+class DevMessenger
 {
     constructor(userId)
     {
@@ -33,7 +33,7 @@ class SendMessage
 
         this.addMeMessage(message);
 
-        this.clearSendValue();
+        $(".send-message-input").val('');
     }
 
     eventMessages()
@@ -54,11 +54,6 @@ class SendMessage
         });
     }
 
-    clearSendValue()
-    {
-        $(".send-message-input").val('');
-    }
-
     addMeMessage(message)
     {
         $(".conversation").append(
@@ -70,6 +65,18 @@ class SendMessage
             '       <span class="haze-message">' + message + '</span>' +
             '   </div>' +
             '</div>'
+        );
+    }
+
+    createConversation(message, receiveId)
+    {
+        this.conn.send(
+            JSON.stringify({
+                'message': message,
+                'userId': this.userId,
+                'receiveId': receiveId,
+                'type': 'create',
+            })
         );
     }
 }
