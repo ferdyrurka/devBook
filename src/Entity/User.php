@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -106,6 +107,25 @@ class User implements UserInterface, \Serializable
      * @ORM\Column(type="datetime", length=24)
      */
     private $createdAt;
+
+    /**
+     * @var string
+     * @ORM\Column(type="integer", length=11, name="token_id")
+     */
+    private $tokenId;
+
+    /**
+     * @var UserToken
+     * @ORM\ManyToOne(targetEntity="UserToken")
+     * @ORM\JoinColumn(name="token_id", referencedColumnName="id")
+     */
+    private $userTokenReferences;
+
+    /**
+     * @var Collection
+     * @ORM\ManyToMany(targetEntity="Conversation", mappedBy="userReferences")
+     */
+    private $conversationReferences;
 
     /**
      * @return int
@@ -281,6 +301,38 @@ class User implements UserInterface, \Serializable
     public function setSex(int $sex): void
     {
         $this->sex = $sex;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTokenId(): string
+    {
+        return $this->tokenId;
+    }
+
+    /**
+     * @return UserToken
+     */
+    public function getUserTokenReferences(): UserToken
+    {
+        return $this->userTokenReferences;
+    }
+
+    /**
+     * @param UserToken $userTokenReferences
+     */
+    public function setUserTokenReferences(UserToken $userTokenReferences): void
+    {
+        $this->userTokenReferences = $userTokenReferences;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getConversationReferences(): Collection
+    {
+        return $this->conversationReferences;
     }
 
     /**
