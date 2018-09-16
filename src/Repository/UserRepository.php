@@ -41,33 +41,62 @@ class UserRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param string $firstToken
-     * @param string $secondToken
-     * @return int
+     * @param string $token
+     * @throws UserNotFoundException
+     * @return User
      */
-    public function getCountByTokens(string $firstToken, string $secondToken): int
+    public function getOneByPublicToken(string $token): User
     {
-        return $this->getEntityManager()
-            ->createQuery('
-                SELECT COUNT(p) FROM App:USER p WHERE p.token = :firstToken OR p.token = :secondToken
-            ')
-            ->setParameter(':firstToken', $firstToken)
-            ->setParameter(':secondToken', $secondToken)
-            ->execute();
+        $user = $this->getEntityManager()->createQuery('
+            SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.publicToken = :token 
+        ')
+            ->setParameter(':token', $token)
+            ->execute()
+        ;
+
+        if (empty($user)) {
+            throw new UserNotFoundException('User by public token not found. Token have value ' . $token);
+        }
+
+        return $user[0];
     }
 
     /**
      * @param string $token
+     * @throws UserNotFoundException
      * @return User
      */
-    public function getOneByToken(string $token): User
+    public function getOneByPrivateWebToken(string $token): User
     {
-        $user = $this->findOneBy(['tokenMessenger' => $token]);
+        $user = $this->getEntityManager()->createQuery('
+            SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token 
+        ')
+            ->setParameter(':token', $token)
+            ->execute()
+        ;
 
-        if (is_null($user)) {
-            throw new UserNotFoundException('User not found by token');
+        if (empty($user)) {
+            throw new UserNotFoundException('User by public token not found. Token have value ' . $token);
         }
 
-        return $user;
+        return $user[0];
+    }
+
+    /**
+     * Not search this user
+     *
+     * @param string $phrase
+     * @param integer $userId
+     * @return array|null
+     */
+    public function findByFirstNameOrSurname(string $phrase, int $userId): ?array
+    {
+        return $this->getEntityManager()->createQuery('
+            SELECT p FROM App:User p WHERE p.id != :id AND p.firstName LIKE :phrase OR p.surname LIKE :phrase
+        ')
+            ->setParameter(':phrase', '%' . $phrase . '%')
+            ->setParameter(':id', $userId)
+            ->execute()
+            ;
     }
 }

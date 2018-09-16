@@ -30,10 +30,11 @@ class SearchFriendsCommandTest extends TestCase
 
         $userRepository = Mockery::mock(UserRepository::class);
         $userRepository->shouldReceive('findByFirstNameOrSurname')
-            ->withArgs(['&amp;&quot;&lt;&gt;'])->once()->andReturn([$user]);
+            ->withArgs(['&amp;&quot;&lt;&gt;', 1])->once()->andReturn([$user]);
 
         $searchFriendsCommand = new SearchFriendsCommand($userRepository);
         $searchFriendsCommand->setPhrase('&"<>');
+        $searchFriendsCommand->setUserId(1);
         $searchFriendsCommand->execute();
         $result = $searchFriendsCommand->getResult();
 

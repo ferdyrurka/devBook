@@ -57,10 +57,26 @@ class SearchFriendsCommand implements CommandInterface
         $this->phrase = $phrase;
     }
 
+    /**
+     * @param int $userId
+     */
+    public function setUserId(int $userId): void
+    {
+        $this->userId = $userId;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUserId(): int
+    {
+        return $this->userId;
+    }
+
     public function execute(): void
     {
         $phrase = htmlspecialchars($this->getPhrase());
-        $users = $this->userRepository->findByFirstNameOrSurname($phrase);
+        $users = $this->userRepository->findByFirstNameOrSurname($phrase, $this->getUserId());
 
         $result = [];
         $i = 0;
