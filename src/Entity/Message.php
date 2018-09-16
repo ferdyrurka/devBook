@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 
 /**
  * Class Message
@@ -16,70 +15,107 @@ use Ramsey\Uuid\Uuid;
 class Message
 {
     /**
-     * @var string
+     * @var int
      * @ORM\Id
-     * @ORM\Column(type="string", length=128, unique=true)
+     * @ORM\Column(type="integer", length=11)
+     * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $messageId;
+    private $id;
+
+    /**
+     * @var string
+     * @ORM\Column(type="string", length=128, name="conversation_id")
+     */
+    private $conversationId;
 
     /**
      * @var string
      * @ORM\Column(type="string", length=10000)
      */
-    private $messages;
+    private $message;
 
     /**
-     * @var string
-     * @ORM\Column(type="string", length=128)
+     * @var int
+     * @ORM\Column(type="integer", length=11)
      */
-    private $sendUserToken;
+    private $sendUserId;
 
     /**
-     * Message constructor.
-     * @throws \Exception
+     * @var \DateTime
+     * @ORM\Column(type="datetime")
      */
-    public function __construct()
+    private $sendTime;
+
+
+    /**
+     * @return int
+     */
+    public function getId(): int
     {
-        $this->messageId = Uuid::uuid4();
+        return $this->id;
     }
 
     /**
      * @return string
      */
-    public function getMessageId(): string
+    public function getConversationId(): string
     {
-        return $this->messageId;
+        return $this->conversationId;
+    }
+
+    /**
+     * @param string $conversationId
+     */
+    public function setConversationId(string $conversationId): void
+    {
+        $this->conversationId = $conversationId;
     }
 
     /**
      * @return string
      */
-    public function getMessages(): string
+    public function getMessage(): string
     {
-        return $this->messages;
+        return $this->message;
     }
 
     /**
-     * @param string $messages
+     * @param string $message
      */
-    public function setMessages(string $messages): void
+    public function setMessage(string $message): void
     {
-        $this->messages = $messages;
+        $this->message = $message;
     }
 
     /**
-     * @return string
+     * @return int
      */
-    public function getSendUserToken(): string
+    public function getSendUserId(): int
     {
-        return $this->sendUserToken;
+        return $this->sendUserId;
     }
 
     /**
-     * @param string $sendUserToken
+     * @param int $sendUserId
      */
-    public function setSendUserToken(string $sendUserToken): void
+    public function setSendUserId(int $sendUserId): void
     {
-        $this->sendUserToken = $sendUserToken;
+        $this->sendUserId = $sendUserId;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getSendTime(): \DateTime
+    {
+        return $this->sendTime;
+    }
+
+    /**
+     * @param \DateTime $sendTime
+     */
+    public function setSendTime(\DateTime $sendTime): void
+    {
+        $this->sendTime = $sendTime;
     }
 }
