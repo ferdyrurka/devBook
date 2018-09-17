@@ -50,7 +50,7 @@ class Conversation
      */
     public function __construct()
     {
-        $this->messageId = Uuid::uuid4();
+        $this->messageId = (string) Uuid::uuid4();
         $this->userReferences = new ArrayCollection();
     }
 
