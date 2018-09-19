@@ -108,11 +108,11 @@ class UserRepository extends ServiceEntityRepository
     public function getCountConversationByUsersId(int $userId, int $receiveId): int
     {
         $conversationsCount = $this->getEntityManager()->createQuery('
-            SELECT COUNT(con.messageId) FROM App:User p 
+            SELECT COUNT(con.conversationId) FROM App:User p 
             INNER JOIN p.conversationReferences con 
             WHERE p.id = :userId OR p.id = :receiveId 
-            GROUP BY con.messageId 
-            HAVING COUNT(con.messageId) > 1
+            GROUP BY con.conversationId 
+            HAVING COUNT(con.conversationId) > 1
         ')
             ->setParameter(':userId', $userId)
             ->setParameter(':receiveId', $receiveId)
