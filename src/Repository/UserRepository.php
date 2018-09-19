@@ -99,4 +99,30 @@ class UserRepository extends ServiceEntityRepository
             ->execute()
             ;
     }
+
+    /**
+     * @param int $userId
+     * @param int $receiveId
+     * @return int
+     */
+    public function getCountConversationByUsersId(int $userId, int $receiveId): int
+    {
+        $conversationsCount = $this->getEntityManager()->createQuery('
+            SELECT COUNT(con.messageId) FROM App:User p 
+            INNER JOIN p.conversationReferences con 
+            WHERE p.id = :userId OR p.id = :receiveId 
+            GROUP BY con.messageId 
+            HAVING COUNT(con.messageId) > 1
+        ')
+            ->setParameter(':userId', $userId)
+            ->setParameter(':receiveId', $receiveId)
+            ->execute()
+        ;
+
+        if (isset($conversationsCount[0][1])) {
+            return (int) $conversationsCount[0][1];
+        }
+
+        return 0;
+    }
 }
