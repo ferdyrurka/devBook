@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Message;
+use App\NullObject\Repository\NullMessageRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -42,12 +43,12 @@ class MessageRepository extends ServiceEntityRepository
 
     /**
      * @param string $conversationId
-     * @return Message|null
+     * @return Message
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findLastMessageByConversationId(string $conversationId): ?Message
+    public function getLastMessageByConversationId(string $conversationId): Message
     {
-        return $this->getEntityManager()->createQuery('
+        $message = $this->getEntityManager()->createQuery('
             SELECT p FROM App:Message p WHERE
             p.conversationId = :conversationId ORDER BY p.sendTime ASC
         ')
@@ -55,5 +56,12 @@ class MessageRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getOneOrNullResult()
             ;
+
+        if (is_null($message)) {
+            $nullMessage = new NullMessageRepository();
+            return $nullMessage->getLastMessageByConversationId('');
+        }
+
+        return $message;
     }
 }
