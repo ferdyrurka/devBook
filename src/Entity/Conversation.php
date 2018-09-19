@@ -28,7 +28,7 @@ class Conversation
      * @ORM\ManyToMany(targetEntity="User", inversedBy="conversationReferences")
      * @ORM\JoinTable(name="conversation_user",
      *      joinColumns={
-     *          @ORM\JoinColumn(name="conversation_id", referencedColumnName="conversation_id")
+     *          @ORM\JoinColumn(name="conversation", referencedColumnName="conversation_id")
      *      },
      *      inverseJoinColumns={
      *          @ORM\JoinColumn(name="user_id", referencedColumnName="id")
