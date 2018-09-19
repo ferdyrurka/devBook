@@ -135,7 +135,7 @@ class CreateConversationCommand implements CommandInterface
                 $receiveUser->getUserTokenReferences()->getPrivateWebToken(),
             ],
             'fullName' => $receiveUser->getFirstName() . ' ' . $receiveUser->getSurname(),
-            'conversationId' => $conversation->getMessageId(),
+            'conversationId' => $conversation->getConversationId(),
             'result' => true,
         ];
 

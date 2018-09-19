@@ -19,7 +19,7 @@ class Conversation
     /**
      * @var string
      * @ORM\Id
-     * @ORM\Column(type="string", length=11, name="conversation_id")
+     * @ORM\Column(type="string", length=36, name="conversation_id")
      */
     private $conversationId;
 
