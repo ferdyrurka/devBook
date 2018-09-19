@@ -17,7 +17,7 @@ use Ramsey\Uuid\Uuid;
 class Conversation
 {
     /**
-     * @var int
+     * @var string
      * @ORM\Id
      * @ORM\Column(type="string", length=11, name="conversation_id")
      */
@@ -48,9 +48,9 @@ class Conversation
     }
 
     /**
-     * @return int
+     * @return string
      */
-    public function getConversationId(): int
+    public function getConversationId(): string
     {
         return $this->conversationId;
     }
