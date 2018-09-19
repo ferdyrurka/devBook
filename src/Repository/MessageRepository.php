@@ -28,7 +28,7 @@ class MessageRepository extends ServiceEntityRepository
      * @param int $limit
      * @return array|null
      */
-    public function findByMessageId(string $conversationId, int $offset, int $limit): ?array
+    public function findByConversationId(string $conversationId, int $offset, int $limit): ?array
     {
         return $this->getEntityManager()->createQuery('
             SELECT p FROM App:Message p WHERE 
@@ -38,5 +38,14 @@ class MessageRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->execute()
         ;
+    }
+
+    /**
+     * @param string $conversationId
+     * @return Message|null
+     */
+    public function findLastMessageByConversationId(string $conversationId): ?Message
+    {
+
     }
 }

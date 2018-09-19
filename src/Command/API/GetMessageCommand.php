@@ -122,7 +122,7 @@ class GetMessageCommand implements CommandInterface
             throw new InvalidException('This Conversation id is invalid. Conversation id is ' . $conversationId);
         }
 
-        $messages = $this->messageRepository->findByMessageId(
+        $messages = $this->messageRepository->findByConversationId(
             $this->getConversationId(),
             $this->getOffset(),
             self::LIMIT_MESSAGES

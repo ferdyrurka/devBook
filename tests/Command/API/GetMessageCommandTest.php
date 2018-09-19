@@ -30,7 +30,7 @@ class GetMessageCommandTest extends TestCase
         $messageSend->shouldReceive('getSendTime')->once()->andReturn($time);
 
         $messageRepository = Mockery::mock(MessageRepository::class);
-        $messageRepository->shouldReceive('findByMessageId')->once()->withArgs(['message_id', 15, 30])
+        $messageRepository->shouldReceive('findByConversationId')->once()->withArgs(['message_id', 15, 30])
             ->andReturn([1 => $messageReceive, 2 => $messageSend]);
 
         $getMessageCommand = new GetMessageCommand($messageRepository);
