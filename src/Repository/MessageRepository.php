@@ -43,9 +43,17 @@ class MessageRepository extends ServiceEntityRepository
     /**
      * @param string $conversationId
      * @return Message|null
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findLastMessageByConversationId(string $conversationId): ?Message
     {
-
+        return $this->getEntityManager()->createQuery('
+            SELECT p FROM App:Message p WHERE
+            p.conversationId = :conversationId ORDER BY p.sendTime ASC
+        ')
+            ->setParameter(':conversationId', $conversationId)
+            ->setMaxResults(1)
+            ->getOneOrNullResult()
+            ;
     }
 }
