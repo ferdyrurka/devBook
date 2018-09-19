@@ -5,6 +5,7 @@ namespace App\Controller\API;
 
 use App\Command\API\GetMessageCommand;
 use App\Service\CommandService;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
@@ -23,6 +24,7 @@ class MessagesController extends Controller
      * @throws /App/Exception/InvalidException
      * @return JsonResponse
      * @Route("/api/get-messages/{conversationId}/{offset}", methods={"GET"}, name="getMessages.message")
+     * @IsGranted("ROLE_USER")
      */
     public function getMessagesAction(
         GetMessageCommand $getMessageCommand,
