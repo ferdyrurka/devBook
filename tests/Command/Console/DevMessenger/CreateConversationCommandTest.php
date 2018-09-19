@@ -30,9 +30,6 @@ class CreateConversationCommandTest extends TestCase
         $entityManager->shouldReceive('persist')->once()->withArgs([Conversation::class]);
         $entityManager->shouldReceive('flush')->once();
 
-        $conversationRepository = Mockery::mock(ConversationRepository::class);
-        $conversationRepository->shouldReceive('getCountByUsersId')->times(2)->withArgs([1, 2])->andReturn(0, 1);
-
         $userToken = Mockery::mock(UserToken::class);
         $userToken->shouldReceive('getPrivateWebToken')->once()->andReturn('receive_private_user_token');
 
@@ -50,10 +47,10 @@ class CreateConversationCommandTest extends TestCase
             ->times(2)->andReturn($userReceive);
         $userRepository->shouldReceive('getOneByPrivateWebToken')->withArgs(['send_user_token'])
             ->times(2)->andReturn($userSend);
+        $userRepository->shouldReceive('getCountConversationByUsersId')->times(2)->withArgs([1, 2])->andReturn(0, 1);
 
         $createConversationCommand = new CreateConversationCommand(
             $entityManager,
-            $conversationRepository,
             $userRepository
         );
         $createConversationCommand->setSendUserToken('send_user_token');
@@ -90,12 +87,10 @@ class CreateConversationCommandTest extends TestCase
     public function testInvalidException(): void
     {
         $entityManager = Mockery::mock(EntityManagerInterface::class);
-        $conversationRepository = Mockery::mock(ConversationRepository::class);
         $userRepository = Mockery::mock(UserRepository::class);
 
         $createConversationCommand = new CreateConversationCommand(
             $entityManager,
-            $conversationRepository,
             $userRepository
         );
 

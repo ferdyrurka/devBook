@@ -30,11 +30,6 @@ class CreateConversationCommand implements CommandInterface
     private $entityManager;
 
     /**
-     * @var ConversationRepository
-     */
-    private $conversationRepository;
-
-    /**
      * @var string
      */
     private $sendUserToken;
@@ -57,12 +52,10 @@ class CreateConversationCommand implements CommandInterface
      */
     public function __construct(
         EntityManagerInterface $entityManager,
-        ConversationRepository $conversationRepository,
         UserRepository $userRepository
     ) {
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
-        $this->conversationRepository = $conversationRepository;
     }
 
     /**
@@ -117,7 +110,7 @@ class CreateConversationCommand implements CommandInterface
             return;
         }
 
-        if ($this->conversationRepository->getCountByUsersId(
+        if ($this->userRepository->getCountConversationByUsersId(
             $sendUser->getId(),
             $receiveUser->getId()
         ) > 0 ) {
