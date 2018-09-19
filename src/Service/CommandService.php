@@ -31,4 +31,16 @@ class CommandService
     {
         $this->command->execute();
     }
+
+    /**
+     * @return array
+     */
+    public function getResult(): array
+    {
+        if (method_exists($this->command, 'getResult')) {
+            return $this->command->getResult();
+        }
+
+        return [];
+    }
 }
