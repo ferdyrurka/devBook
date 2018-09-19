@@ -19,23 +19,16 @@ class Conversation
     /**
      * @var int
      * @ORM\Id
-     * @ORM\Column(type="integer", length=11)
-     * @ORM\GeneratedValue(strategy="AUTO")
+     * @ORM\Column(type="string", length=11, name="conversation_id")
      */
-    private $id;
-
-    /**
-     * @var string
-     * @ORM\Column(type="string", length=36)
-     */
-    private $messageId;
+    private $conversationId;
 
     /**
      * @var Collection
      * @ORM\ManyToMany(targetEntity="User", inversedBy="conversationReferences")
      * @ORM\JoinTable(name="conversation_user",
      *      joinColumns={
-     *          @ORM\JoinColumn(name="conversation_id", referencedColumnName="id")
+     *          @ORM\JoinColumn(name="conversation_id", referencedColumnName="conversation_id")
      *      },
      *      inverseJoinColumns={
      *          @ORM\JoinColumn(name="user_id", referencedColumnName="id")
@@ -50,24 +43,16 @@ class Conversation
      */
     public function __construct()
     {
-        $this->messageId = (string) Uuid::uuid4();
+        $this->conversationId = (string) Uuid::uuid4();
         $this->userReferences = new ArrayCollection();
     }
 
     /**
      * @return int
      */
-    public function getId(): int
+    public function getConversationId(): int
     {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getMessageId(): string
-    {
-        return $this->messageId;
+        return $this->conversationId;
     }
 
     /**
@@ -94,5 +79,14 @@ class Conversation
     {
         $this->getUserReferences()->add($user);
         return $this;
+    }
+
+    /**
+     * @param User $user
+     * @return Conversation
+     */
+    public function removeConversation(User $user): self
+    {
+        $this->getUserReferences()->remove($user);
     }
 }
