@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+    proxy:
+        build:
+            context: ./etc/infrastructure/nginx
+            dockerfile: nginx.Dockerfile
+        image: nginx-proxy
+        ports:
+            - '80:80'
+
+    web:
+        build:
+            context: ./etc/infrastructure/apache
+            dockerfile: apache.Dockerfile
+        image: apache-php7.2.10
+        volumes: 
+            - ./web:/var/www/html
+
+    rabbitMQ:
+        image: rabbitmq:3.7.8-management
+        environment:
+            - RABBITMQ_DEFAULT_USER=rabbitmq_admin
+            - RABBITMQ_DEFAULT_PASS=password
+        ports: 
+            - '7000:15672'
+
+    mysql:
+        image: mysql:5.7.23
+        environment:
+          - MYSQL_ROOT_PASSWORD=password
+          - MYSQL_DATABASE=mysql-db
+        volumes:
+          - mysql:/var/lib/mysql
+        ports:
+          - '3306:3306'
+          
+    redis:
+        build:
+            context: ./etc/infrastructure/redis
+            dockerfile: redis.Dockerfile
+        image: redis-compose
+        ports:
+            - '6379:6379'
+
+volumes:
+    mysql:

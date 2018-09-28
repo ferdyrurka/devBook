@@ -1,10 +1,9 @@
 
 ###> symfony/framework-bundle ###
 .idea
-/.env
 /public/bundles/
-/var/
-/vendor/
+web/var/
+web/vendor/
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###
@@ -15,3 +14,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 ###< phpunit/phpunit ###
+
+#lock
+web/composer.lock
+web/symfony.lock
