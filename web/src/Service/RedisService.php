@@ -36,7 +36,9 @@ class RedisService
      */
     public function setDatabase(int $database): Client
     {
-        return $this->client->select($database);
+        $this->client->select($database);
+
+        return $this->client;
     }
 
     /**
