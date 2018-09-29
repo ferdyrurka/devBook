@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
@@ -23,8 +24,19 @@ class RedisService
             'host' => 'redis',
             'port' => 6379
         ]);
+
         $this->client->auth('my-pass');
-        $this->client->select($database);
+
+        $this->setDatabase($database);
+    }
+
+    /**
+     * @param int $database
+     * @return Client
+     */
+    public function setDatabase(int $database): Client
+    {
+        return $this->client->select($database);
     }
 
     /**
