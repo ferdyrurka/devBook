@@ -17,6 +17,20 @@ class CommandService
     private $command;
 
     /**
+     * @param string $name
+     * @param array $arguments
+     * @return mixed
+     */
+    public function __call(string $name, array $arguments)
+    {
+        if (method_exists($this->command, $name)) {
+            return $this->command->$name();
+        }
+
+        return null;
+    }
+
+    /**
      * @param CommandInterface $command
      * @return self
      */
@@ -30,17 +44,5 @@ class CommandService
     public function execute(): void
     {
         $this->command->execute();
-    }
-
-    /**
-     * @return array
-     */
-    public function getResult(): array
-    {
-        if (method_exists($this->command, 'getResult')) {
-            return $this->command->getResult();
-        }
-
-        return [];
     }
 }
