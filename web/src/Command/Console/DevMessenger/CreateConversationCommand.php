@@ -10,7 +10,9 @@ use App\Exception\InvalidException;
 use App\Exception\UserNotFoundException;
 use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
+use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
+use Predis\Client;
 
 /**
  * Class CreateConversation
@@ -40,6 +42,11 @@ class CreateConversationCommand implements CommandInterface
     private $receiveUserToken;
 
     /**
+     * @var Client
+     */
+    private $redis;
+
+    /**
      * @var array
      */
     private $result;
@@ -47,13 +54,15 @@ class CreateConversationCommand implements CommandInterface
     /**
      * CreateConversationCommand constructor.
      * @param EntityManagerInterface $entityManager
-     * @param ConversationRepository $conversationRepository
      * @param UserRepository $userRepository
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         UserRepository $userRepository
     ) {
+        $redis = new RedisService(2);
+        $this->redis = $redis->getClient();
+
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
     }
@@ -95,7 +104,9 @@ class CreateConversationCommand implements CommandInterface
      */
     public function execute(): void
     {
-        //Validate
+        /**
+         * Validate arguments
+         */
 
         if (($sendToken = $this->getSendUserToken()) === ($receiveToken = $this->getReceiveUserToken())) {
             $this->result['result'] = false;
@@ -107,6 +118,7 @@ class CreateConversationCommand implements CommandInterface
             $sendUser = $this->userRepository->getOneByPrivateWebToken($sendToken);
         } catch (UserNotFoundException $exception) {
             $this->result['result'] = false;
+
             return;
         }
 
@@ -115,10 +127,15 @@ class CreateConversationCommand implements CommandInterface
             $receiveUser->getId()
         ) > 0 ) {
             $this->result['result'] = false;
+
             throw new ConversationExistException('This conversation exist. Send user id is: ' . $sendUser->getId());
         }
 
-        //Save
+        /**
+         * Save
+         */
+
+        #MySql
 
         $conversation = new Conversation();
         $conversation
@@ -129,17 +146,18 @@ class CreateConversationCommand implements CommandInterface
         $this->entityManager->persist($conversation);
         $this->entityManager->flush();
 
+        #Redis
+
+        $this->redis->set($conversation->getConversationId(), json_encode([
+            $this->getSendUserToken(),
+            $receiveUser->getUserTokenReferences()->getPrivateWebToken()
+        ]));
+
         $this->result = [
-            'usersId' => [
-                $this->getSendUserToken(),
-                $receiveUser->getUserTokenReferences()->getPrivateWebToken(),
-            ],
             'fullName' => $receiveUser->getFirstName() . ' ' . $receiveUser->getSurname(),
             'conversationId' => $conversation->getConversationId(),
-            'result' => true,
+            'result' => true
         ];
-
-        return;
     }
 
     /**
