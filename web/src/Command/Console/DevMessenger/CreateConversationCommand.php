@@ -148,9 +148,18 @@ class CreateConversationCommand implements CommandInterface
 
         #Redis
 
+        $usersToken = [];
+
+        $sendUser = $sendUser->getUserTokenReferences();
+        $usersToken[] = $sendUser->getPrivateMobileToken();
+        $usersToken[] = $sendUser->getPrivateWebToken();
+
+        $receiveUserToken = $receiveUser->getUserTokenReferences();
+        $usersToken[] = $receiveUserToken->getPrivateWebToken();
+        $usersToken[] = $receiveUserToken->getPrivateMobileToken();
+
         $this->redis->set($conversation->getConversationId(), json_encode([
-            $this->getSendUserToken(),
-            $receiveUser->getUserTokenReferences()->getPrivateWebToken()
+            $usersToken
         ]));
 
         $this->result = [
