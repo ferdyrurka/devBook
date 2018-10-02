@@ -54,8 +54,8 @@ class RegistryOnlineUserCommand implements CommandInterface
     {
         $this->userRepository = $userRepository;
 
-        $this->redisService = new RedisService(0);
-        $this->redis = $this->redisService->getClient();
+        $this->redisService = new RedisService();
+        $this->redis = $this->redisService->setDatabase(0);
     }
 
     /**
