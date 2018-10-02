@@ -15,9 +15,8 @@ class RedisService
 
     /**
      * ReddisService constructor.
-     * @param int $database
      */
-    public function __construct(int $database)
+    public function __construct()
     {
         $this->client = new Client([
             'scheme' => 'tcp',
@@ -26,8 +25,6 @@ class RedisService
         ]);
 
         $this->client->auth('my-pass');
-
-        $this->setDatabase($database);
     }
 
     /**
