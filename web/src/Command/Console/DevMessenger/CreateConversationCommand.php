@@ -55,13 +55,14 @@ class CreateConversationCommand implements CommandInterface
      * CreateConversationCommand constructor.
      * @param EntityManagerInterface $entityManager
      * @param UserRepository $userRepository
+     * @param RedisService $redis
      */
     public function __construct(
         EntityManagerInterface $entityManager,
-        UserRepository $userRepository
+        UserRepository $userRepository,
+        RedisService $redis
     ) {
-        $redis = new RedisService(2);
-        $this->redis = $redis->getClient();
+        $this->redis = $redis->setDatabase(2);
 
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
