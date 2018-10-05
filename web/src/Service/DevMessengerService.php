@@ -5,6 +5,7 @@ namespace App\Service;
 
 use App\Command\Console\DevMessenger\AddMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
+use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Entity\Message;
 use App\Exception\UserNotFoundException;
 use App\Repository\UserRepository;
@@ -44,31 +45,31 @@ class DevMessengerService implements MessageComponentInterface
     private $addMessageCommand;
 
     /**
-     * @var UserRepository
-     */
-    private $userRepository;
-
-    /**
      * @var CreateConversationCommand
      */
     private $createConversationCommand;
+
+    /**
+     * @var RegistryOnlineUserCommand
+     */
+    private $registryOnlineUserCommand;
 
     /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
      * @param AddMessageCommand $addMessageCommand
      * @param CreateConversationCommand $createConversationCommand
-     * @param UserRepository $userRepository
+     * @param RegistryOnlineUserCommand $registryOnlineUserCommand
      */
     public function __construct(
         CommandService $commandService,
         AddMessageCommand $addMessageCommand,
         CreateConversationCommand $createConversationCommand,
-        UserRepository $userRepository
+        RegistryOnlineUserCommand $registryOnlineUserCommand
     ) {
         $this->clients = new \SplObjectStorage();
 
-        $this->userRepository = $userRepository;
+        $this->registryOnlineUserCommand = $registryOnlineUserCommand;
         $this->addMessageCommand = $addMessageCommand;
         $this->commandService = $commandService;
         $this->createConversationCommand = $createConversationCommand;
@@ -101,55 +102,36 @@ class DevMessengerService implements MessageComponentInterface
              * Register in array Users
              */
             case 'registry':
-                if (array_key_exists('userId', $msg)) {
-                    try {
-                        $user = $this->userRepository->getOneByPrivateWebToken(
-                            $msg['userId'] = htmlspecialchars($msg['userId'])
-                        );
-                    } catch (UserNotFoundException $exception) {
-                        $this->onClose($from);
-                        return;
-                    }
+                $this->registryOnlineUserCommand->setConnId($from->resourceId);
+                $this->registryOnlineUserCommand->setMessage($msg);
 
-                    $this->users[$msg['userId']]['conn'] = $from;
-                    $this->users[$msg['userId']]['id'] = $user->getId();
+                $this->commandService->setCommand($this->registryOnlineUserCommand);
+                $this->commandService->execute();
+
+                if ($this->commandService->getResult() === false) {
+                    $this->onClose($from);
                 }
 
-                return;
+                break;
             /**
              * Users send messages.
              * Send to users or alert (RabbitMQ).
              */
+
             case 'message':
-                if (array_key_exists(
-                    $msg['conversationId'] = htmlspecialchars($msg['conversationId']),
-                    $this->conversation
-                )
-                ) {
-                    $conversation = $this->conversation[$msg['conversationId']];
+                $this->addMessageCommand->setMessage($msg);
+                $this->addMessageCommand->setFromId($from->resourceId);
 
-                    if (!in_array($msg['userId'] = htmlspecialchars($msg['userId']), $conversation)) {
-                        return;
-                    }
+                $this->commandService->setCommand($this->addMessageCommand);
+                $this->commandService->execute();
 
-                    $message = new Message();
-                    $message->setMessage($msg['message'] = htmlspecialchars($msg['message']));
-                    $message->setConversationId($msg['conversationId']);
-                    $message->setSendUserId((int) $this->users[$msg['userId']]['id']);
-
-                    $this->addMessageCommand->setMessage($message);
-
-                    $this->commandService->setCommand($this->addMessageCommand);
-                    $this->commandService->execute();
-
-                    foreach ($conversation as $userId) {
-                        //User is online
-                        if ($userId !== $msg['userId'] && array_key_exists($userId, $this->users)) {
-                            $this->users[$userId]['conn']->send(json_encode([
-                                'type' => 'message',
-                                'message' => $msg['message']
-                            ]));
-                        }
+                foreach ($this->commandService->getResult() as $userId) {
+                    //User is online
+                    if ($userId !== $msg['userId'] && array_key_exists($userId, $this->users)) {
+                        $this->users[$userId]['conn']->send(json_encode([
+                            'type' => 'message',
+                            'message' => $msg['message']
+                        ]));
                     }
                 }
 
@@ -165,10 +147,6 @@ class DevMessengerService implements MessageComponentInterface
 
                 if (!empty($result)) {
                     $result['type'] = 'create';
-                    $this->conversation[$result['conversationId']] = $result['usersId'];
-
-                    //This is private web tokens users.
-                    unset($result['usersId']);
                 }
 
                 $from->send(json_encode($result));
