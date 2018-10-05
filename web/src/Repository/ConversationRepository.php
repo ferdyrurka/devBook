@@ -25,10 +25,10 @@ class ConversationRepository extends ServiceEntityRepository
 
     /**
      * @param string $conversationId
-     * @return Conversation
+     * @return array
      * @throws ConversationNotExistException
      */
-    public function getByConversationId(string $conversationId): Conversation
+    public function getByConversationId(string $conversationId): array
     {
         $conversation = $this->findBy(['conversationId' => $conversationId]);
 
@@ -39,5 +39,21 @@ class ConversationRepository extends ServiceEntityRepository
         }
 
         return $conversation;
+    }
+
+    /**
+     * @param string $conversationId
+     * @param int $userId
+     * @return array|null
+     */
+    public function findConversationByConversationIdAndUserId(string $conversationId, int $userId): ?array
+    {
+        return $this->getEntityManager()->createQuery('
+            SELECT p FROM App:Conversation p INNER JOIN p.userReferences u
+            WHERE u.id = :userId AND p.conversationId = :conversationId
+        ')
+            ->setParameter(':userId', $userId)
+            ->setParameter(':conversationId', $conversationId)
+            ->execute();
     }
 }
