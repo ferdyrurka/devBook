@@ -271,7 +271,7 @@ class AddMessageCommand implements CommandInterface
         #Save in database mysql
 
         $messageEntity = new Message();
-        $messageEntity->setMessage($message['message'] = htmlspecialchars($message['message']));
+        $messageEntity->setMessage(htmlspecialchars($message['message']));
         $messageEntity->setConversationId($conversationId);
         $messageEntity->setSendUserId((int) $user['id']);
 
