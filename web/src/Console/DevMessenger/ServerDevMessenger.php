@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Console\DevMessenger;
 
 use App\Service\DevMessengerService;
+use App\Service\RedisService;
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
@@ -17,7 +18,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ServerDevMessenger extends Command
 {
-
     /**
      * @var DevMessengerService
      */
@@ -26,9 +26,14 @@ class ServerDevMessenger extends Command
     /**
      * ServerDevMessenger constructor.
      * @param DevMessengerService $devMessengerService
+     * @param RedisService $redisService
      */
-    public function __construct(DevMessengerService $devMessengerService)
+    public function __construct(DevMessengerService $devMessengerService, RedisService $redisService)
     {
+        //Clear online users
+        $redisService->setDatabase(0)->flushdb();
+        $redisService->setDatabase(1)->flushdb();
+
         $this->devMessengerService = $devMessengerService;
         parent::__construct();
     }
@@ -36,9 +41,14 @@ class ServerDevMessenger extends Command
 
     public function configure(): void
     {
-        $this->setName('DevMessage:server');
-        $this->setDescription('');
-        $this->setHelp('');
+        $this->setName('DevMessenger:server-start');
+        $this->setDescription('This command is used for managed DevMessenger WebSocket.');
+        $this->setHelp(
+            "
+            Commands: \n
+                server-start -- starting server. \n
+            "
+        );
     }
 
     /**
@@ -53,11 +63,10 @@ class ServerDevMessenger extends Command
                     $this->devMessengerService
                 )
             ),
-            '2013',
-            '127.0.0.6'
+            '2013'
         );
 
-        $output->writeln('Server starting...');
+        $output->writeln('Server starting in port :2013...');
 
         $server->run();
     }
