@@ -5,10 +5,8 @@ namespace App\Service;
 
 use App\Command\Console\DevMessenger\AddMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
+use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
-use App\Entity\Message;
-use App\Exception\UserNotFoundException;
-use App\Repository\UserRepository;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 
@@ -27,12 +25,7 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * @var array
      */
-    private $users = [];
-
-    /**
-     * @var array
-     */
-    private $conversation = [];
+    private $users;
 
     /**
      * @var CommandService
@@ -55,17 +48,24 @@ class DevMessengerService implements MessageComponentInterface
     private $registryOnlineUserCommand;
 
     /**
+     * @var DeleteOnlineUserCommand
+     */
+    private $deleteOnlineUserCommand;
+
+    /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
      * @param AddMessageCommand $addMessageCommand
      * @param CreateConversationCommand $createConversationCommand
      * @param RegistryOnlineUserCommand $registryOnlineUserCommand
+     * @param DeleteOnlineUserCommand $deleteOnlineUserCommand
      */
     public function __construct(
         CommandService $commandService,
         AddMessageCommand $addMessageCommand,
         CreateConversationCommand $createConversationCommand,
-        RegistryOnlineUserCommand $registryOnlineUserCommand
+        RegistryOnlineUserCommand $registryOnlineUserCommand,
+        DeleteOnlineUserCommand $deleteOnlineUserCommand
     ) {
         $this->clients = new \SplObjectStorage();
 
@@ -73,6 +73,7 @@ class DevMessengerService implements MessageComponentInterface
         $this->addMessageCommand = $addMessageCommand;
         $this->commandService = $commandService;
         $this->createConversationCommand = $createConversationCommand;
+        $this->deleteOnlineUserCommand = $deleteOnlineUserCommand;
     }
 
     /**
@@ -81,6 +82,7 @@ class DevMessengerService implements MessageComponentInterface
     public function onOpen(ConnectionInterface $conn): void
     {
         $this->clients->attach($conn);
+        $this->users[$conn->resourceId] = $conn;
     }
 
     /**
@@ -113,29 +115,38 @@ class DevMessengerService implements MessageComponentInterface
                 }
 
                 break;
+
             /**
              * Users send messages.
              * Send to users or alert (RabbitMQ).
              */
-
             case 'message':
+                if (!array_key_exists('conversationId', $msg) || empty($msg['conversationId']) ||
+                    !array_key_exists('message', $msg) || empty($msg['message'])
+                ) {
+                    break;
+                }
+
                 $this->addMessageCommand->setMessage($msg);
                 $this->addMessageCommand->setFromId($from->resourceId);
 
                 $this->commandService->setCommand($this->addMessageCommand);
                 $this->commandService->execute();
 
-                foreach ($this->commandService->getResult() as $userId) {
-                    //User is online
-                    if ($userId !== $msg['userId'] && array_key_exists($userId, $this->users)) {
-                        $this->users[$userId]['conn']->send(json_encode([
-                            'type' => 'message',
-                            'message' => $msg['message']
-                        ]));
-                    }
+                foreach ($this->commandService->getResult() as $userConnId) {
+                    //Users is online
+                    $this->users[$userConnId]->send(json_encode([
+                        'type' => 'message',
+                        'message' => htmlspecialchars($msg['message'])
+                    ]));
                 }
 
-                return;
+                break;
+
+            /**
+             * Create a new Conversation
+             * return conversationId, full name user and result.
+             */
             case 'create':
                 $this->createConversationCommand->setReceiveUserToken(htmlspecialchars($msg['receiveId']));
                 $this->createConversationCommand->setSendUserToken(htmlspecialchars($msg['userId']));
@@ -150,9 +161,10 @@ class DevMessengerService implements MessageComponentInterface
                 }
 
                 $from->send(json_encode($result));
-                return;
+
+                break;
             default:
-                return;
+                break;
         }
     }
 
@@ -162,6 +174,10 @@ class DevMessengerService implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn): void
     {
         $this->clients->detach($conn);
+        $this->deleteOnlineUserCommand->setConnId((int) $conn->resourceId);
+
+        $this->commandService->setCommand($this->deleteOnlineUserCommand);
+        $this->commandService->execute();
     }
 
     /**
@@ -170,7 +186,7 @@ class DevMessengerService implements MessageComponentInterface
      */
     public function onError(ConnectionInterface $conn, \Exception $e): void
     {
-        echo "An error has occurred: {$e->getMessage()}\n";
+        echo "An error has occurred: {$e->getMessage()} \n";
 
         $conn->close();
     }
