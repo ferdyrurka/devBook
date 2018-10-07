@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller\API;
 
 use App\Command\API\SearchFriendsCommand;
+use App\Exception\InvalidException;
 use App\Service\CommandService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -22,6 +23,7 @@ class FriendsController extends Controller
      * @param SearchFriendsCommand $searchFriendsCommand
      * @param Request $request
      * @return JsonResponse
+     * @throws InvalidException
      * @Route("/api/search-friends", methods={"GET"}, name="searchFriends.friends")
      * @IsGranted("ROLE_USER")
      */
@@ -30,7 +32,16 @@ class FriendsController extends Controller
         SearchFriendsCommand $searchFriendsCommand,
         Request $request
     ): JsonResponse {
-        $searchFriendsCommand->setPhrase($request->get('q'));
+        $phrase = $request->get('q');
+
+        if (empty($phrase)) {
+            throw new InvalidException(
+                'Undefined variable q in url: /api/search-friends.
+                User IP: ' . $request->getClientIp()
+            );
+        }
+
+        $searchFriendsCommand->setPhrase($phrase);
         $searchFriendsCommand->setUserId($this->getUser()->getId());
 
         $commandService->setCommand($searchFriendsCommand);
