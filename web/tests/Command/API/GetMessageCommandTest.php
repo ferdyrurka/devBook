@@ -15,7 +15,12 @@ use \Mockery;
  */
 class GetMessageCommandTest extends TestCase
 {
-    public function testExecute()
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
+    /**
+     * @throws \App\Exception\InvalidException
+     */
+    public function testExecute(): void
     {
         $time = new \DateTime("now");
 
@@ -30,11 +35,13 @@ class GetMessageCommandTest extends TestCase
         $messageSend->shouldReceive('getSendTime')->once()->andReturn($time);
 
         $messageRepository = Mockery::mock(MessageRepository::class);
-        $messageRepository->shouldReceive('findByConversationId')->once()->withArgs(['message_id', 15, 30])
+        $messageRepository->shouldReceive('findByConversationId')->once()->withArgs([
+                '8fdc55bd-6db4-46dd-8616-8dc786fe3eb0', 450, 30
+            ])
             ->andReturn([1 => $messageReceive, 2 => $messageSend]);
 
         $getMessageCommand = new GetMessageCommand($messageRepository);
-        $getMessageCommand->setConversationId('message_id');
+        $getMessageCommand->setConversationId('8fdc55bd-6db4-46dd-8616-8dc786fe3eb0');
         $getMessageCommand->setUserId(1);
         $getMessageCommand->setOffset(15);
         $getMessageCommand->execute();
