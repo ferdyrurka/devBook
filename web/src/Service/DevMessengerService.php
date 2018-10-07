@@ -174,6 +174,8 @@ class DevMessengerService implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn): void
     {
         $this->clients->detach($conn);
+        unset($this->users[(int) $conn->resourceId]);
+
         $this->deleteOnlineUserCommand->setConnId((int) $conn->resourceId);
 
         $this->commandService->setCommand($this->deleteOnlineUserCommand);
