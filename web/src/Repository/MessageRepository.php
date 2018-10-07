@@ -50,7 +50,7 @@ class MessageRepository extends ServiceEntityRepository
     {
         $message = $this->getEntityManager()->createQuery('
             SELECT p FROM App:Message p WHERE
-            p.conversationId = :conversationId ORDER BY p.sendTime ASC
+            p.conversationId = :conversationId ORDER BY p.sendTime DESC
         ')
             ->setParameter(':conversationId', $conversationId)
             ->setMaxResults(1)
