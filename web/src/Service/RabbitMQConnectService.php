@@ -19,7 +19,7 @@ class RabbitMQConnectService
      */
     public function __construct()
     {
-        $this->connection = new AMQPStreamConnection('localhost', '5672', 'guest', 'guest');
+        $this->connection = new AMQPStreamConnection('rabbitMQ', '5672', 'rabbitmq_admin', 'password');
     }
 
     /**
