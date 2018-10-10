@@ -110,18 +110,11 @@ class CreateConversationCommand implements CommandInterface
          */
 
         if (($sendToken = $this->getSendUserToken()) === ($receiveToken = $this->getReceiveUserToken())) {
-            $this->result['result'] = false;
             throw new InvalidException('Token is equal. Token is must not equal. Token value: ' . $sendToken);
         }
 
-        try {
-            $receiveUser = $this->userRepository->getOneByPublicToken($receiveToken);
-            $sendUser = $this->userRepository->getOneByPrivateWebToken($sendToken);
-        } catch (UserNotFoundException $exception) {
-            $this->result['result'] = false;
-
-            return;
-        }
+        $receiveUser = $this->userRepository->getOneByPublicToken($receiveToken);
+        $sendUser = $this->userRepository->getOneByPrivateWebToken($sendToken);
 
         if ($this->userRepository->getCountConversationByUsersId(
             $sendUser->getId(),
