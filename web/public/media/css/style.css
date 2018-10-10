@@ -213,6 +213,10 @@ body{
     font-size: 20px;
 }
 
+.hidden{
+    display: none;
+}
+
 /**
  * Conversation
  */
@@ -369,7 +373,7 @@ body{
  *  Search User
  */
 
-.results-search-user{
+#results-search-user{
     margin-top: 5px;
     padding: 0 5px 0 0;
     border: 1px solid #bfbfbf;
@@ -378,21 +382,25 @@ body{
     overflow-y: scroll;
 }
 
-.results-search-user > .result{
+#results-search-user > .result{
     height: auto;
     width: 100%;
     padding: 5px 0;
     transition: all 0.3s ease-in-out;
 }
 
-.results-search-user > .result > .name{
+#results-search-user > .result > .name{
     padding-left: 10px;
     font-size: 15px;
 }
 
-.results-search-user > .result:hover{
+#results-search-user > .result:hover{
     background-color: #f2f2f2;
     transition: all 0.3s ease-in-out;
+}
+
+.new-message > .fas{
+    color: #ff0000 !important;
 }
 
 /**
