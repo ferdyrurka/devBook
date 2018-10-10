@@ -2,6 +2,8 @@
 
 {% block modaltemplate %}
 
+    <script src="/media/js/DevMessenger/DevMessenger.js"></script>
+
     <!-- Created conversation template -->
 
     <script type="text/x-template" id="create-conversation-modal">
@@ -24,9 +26,10 @@
 
                             <div style="width: 100%">
                                 <input type="search" class="create-conversation-input" id="search-user" placeholder="{% trans %}Search user{% endtrans %}">
-                                <button class="btn btn-dark" id="search-user-btn" @click="search();">{% trans %}Search{% endtrans %}</button>
+                                <button class="btn btn-dark" id="search-user-btn" @click="search();create();">{% trans %}Search{% endtrans %}</button>
                             </div>
-                            <div class="results-search-user" @click="create();"></div>
+                            <div id="results-search-user"></div>
+                            <div id="conversation-exist-alert" class="hidden">{% trans %}Conversation is exist. Please search in conversation.{% endtrans %}</div>
                         </div>
 
                         <div class="modal-footer">
@@ -64,11 +67,8 @@
         <div class="col-md-9" style="padding: 0 !important;">
             <div class="header-message col-12">
                 <div class="row">
-                    <div class="col-8" id="name-message">
+                    <div class="col-12" id="name-message">
                         {% trans %}Lack conversation{% endtrans %}
-                    </div>
-                    <div class="col-4 setting-message">
-                        <i class="fas fa-toolbox"></i>
                     </div>
                 </div>
             </div>
@@ -89,7 +89,9 @@
 
                 </modal>
             </div>
+            <div id="list-conversations">
 
+            </div>
         </div>
 
         <!-- Conversation -->
@@ -112,69 +114,95 @@
     </div>
 
     <input type="hidden" id="conversationId" value="">
-    <input type="hidden" id="offset-conversation" value="1">
-
-    <script src="/media/js/devMessenger/DevMessenger.js"></script>
 
     <script>
+        //Get messages wait message
+        $("#conversation").html("{% trans %}Please wait... I'm working{% endtrans %}");
+
         //ListConversation
-
         $("#all-conversations").append("<span id=\"load-conversation\">{% trans %}Loading conversation. Please wait..{% endtrans %}</span>");
-        listConversation = new ListConversation();
-        listConversation.setListConversation();
+        conversation = new Conversation();
+        conversation.setListConversation();
 
-        var conversationId = $("#conversationId").val();
+        $(document).ready(function () {
 
-        //Get messages
-        $("#conversation").html("{% trans %}Please wait... I'm working{% endtrans %}")
+            var conversationId = $("#conversationId").val();
 
-        //Initial connection to WebSocket
-        webSocket = new DevMessenger("{{ userId }}");
+            //Initial connection to WebSocket
+            webSocket = new DevMessenger("{{ userId }}");
 
-        //Send message
+            //Send message
 
-        $(".send-message-btn").click(function () {
-
-            var message = $(".send-message-input").val();
-
-            webSocket.sendMessage(message, conversationId);
-        });
-
-        $(document).keypress(function (e) {
-            if (e.which === 13) {
+            $(".send-message-btn").click(function () {
                 var message = $(".send-message-input").val();
 
-                webSocket.sendMessage(message, conversationId)
-            }
-        });
-        // Create new Conversation
-
-        searchFriends = new SearchFriends();
-
-        Vue.component('modal', {
-            template: '#create-conversation-modal',
-            methods: {
-                search: function () {
-                    var value = $("#search-user").val();
-
-                    if (value.length >= 3) {
-                        $(".results-search-user").html("{% trans %}Searching...{% endtrans %}");
-                        searchFriends.search(value);
-                    }
-                },
-                create: function () {
-                    $(".result").click(function () {
-                        webSocket.sendCreateConversation($(this).attr('userid'));
-                    });
+                if (conversationId === '') {
+                    console.warn('Conversation id is empty');
+                    conversationId = $("#conversationId").val();
                 }
-            }
-        });
 
-        new Vue({
-            el: '#create-conversation-btn-modal',
-            data: {
-                showModal: false
-            },
+                if (message.length >= 1) {
+                    webSocket.sendMessage(message, conversationId);
+                    $("#conversation").animate({ scrollTop: $(document).height() }, "fast");
+                }
+            });
+
+            // History conversation
+
+            historyConversation = new HistoryConversation(conversationId);
+
+            var scrollConversation = document.querySelector("#conversation");
+
+            scrollConversation.addEventListener('scroll', function () {
+                conversationId = $("#conversationId").val();
+
+                if (conversationId !== historyConversation.getConversationId()) {
+                    historyConversation.setConversationId(conversationId);
+                    historyConversation.setOffset(1);
+                    historyConversation.unblock();
+                }
+
+                if (scrollConversation.scrollTop === 0) {
+                    historyConversation.updateHistory();
+                }
+            });
+
+            //Set conversation
+
+            $("#list-conversations").on("click", '.your-conversation', function () {
+                conversation.setConversation($(this).attr("id"), $(this).attr("fullName"));
+            });
+
+            // Create new Conversation
+
+            searchFriends = new SearchFriends();
+
+            Vue.component('modal', {
+                template: '#create-conversation-modal',
+                methods: {
+                    search: function () {
+                        var value = $("#search-user").val();
+
+                        if (value.length >= 3) {
+                            $("#results-search-user").html("{% trans %}Searching...{% endtrans %}");
+                            searchFriends.search(value);
+                        }
+                    },
+                    create: function () {
+                        $("#results-search-user").on('click', '.result', function () {
+                            webSocket.sendCreateConversation($(this).attr('userid'));
+                        });
+                    }
+                }
+            });
+
+            new Vue({
+                el: '#create-conversation-btn-modal',
+                data: {
+                    showModal: false
+                },
+            });
+
         });
     </script>
 
