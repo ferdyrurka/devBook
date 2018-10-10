@@ -137,6 +137,7 @@ class DevMessengerService implements MessageComponentInterface
                     //Users is online
                     $this->users[$userConnId]->send(json_encode([
                         'type' => 'message',
+                        'conversationId' => htmlspecialchars($msg['conversationId']),
                         'message' => htmlspecialchars($msg['message'])
                     ]));
                 }
