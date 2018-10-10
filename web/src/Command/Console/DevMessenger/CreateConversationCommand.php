@@ -62,7 +62,7 @@ class CreateConversationCommand implements CommandInterface
         UserRepository $userRepository,
         RedisService $redis
     ) {
-        $this->redis = $redis->setDatabase(2);
+        $this->redis = $redis;
 
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
@@ -152,7 +152,7 @@ class CreateConversationCommand implements CommandInterface
         $usersToken[] = $receiveUserToken->getPrivateWebToken();
         $usersToken[] = $receiveUserToken->getPrivateMobileToken();
 
-        $this->redis->set($conversation->getConversationId(), json_encode([
+        $this->redis->setDatabase(2)->set($conversation->getConversationId(), json_encode([
             $usersToken
         ]));
 
