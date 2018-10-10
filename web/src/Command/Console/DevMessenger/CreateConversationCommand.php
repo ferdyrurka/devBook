@@ -5,10 +5,7 @@ namespace App\Command\Console\DevMessenger;
 
 use App\Command\CommandInterface;
 use App\Entity\Conversation;
-use App\Exception\ConversationExistException;
 use App\Exception\InvalidException;
-use App\Exception\UserNotFoundException;
-use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
