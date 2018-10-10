@@ -67,10 +67,10 @@ class CreateConversationCommandTest extends TestCase
 
         $userRepository = Mockery::mock(UserRepository::class);
         $userRepository->shouldReceive('getOneByPublicToken')->withArgs(['receive_user_token'])
-            ->times(2)->andReturn($userReceive);
+            ->once()->andReturn($userReceive);
         $userRepository->shouldReceive('getOneByPrivateWebToken')->withArgs(['send_user_token'])
-            ->times(2)->andReturn($userSend);
-        $userRepository->shouldReceive('getCountConversationByUsersId')->times(2)->withArgs([1, 2])->andReturn(0, 1);
+            ->once()->andReturn($userSend);
+        $userRepository->shouldReceive('getCountConversationByUsersId')->once()->withArgs([1, 2])->andReturn(0, 1);
 
         $createConversationCommand = new CreateConversationCommand(
             $entityManager,
@@ -87,20 +87,6 @@ class CreateConversationCommandTest extends TestCase
         $this->assertNotNull($result['conversationId']);
         $this->assertTrue($result['result']);
         $this->assertEquals('FirstName Surname', $result['fullName']);
-
-        $this->conversationExistExceptionTest($createConversationCommand);
-    }
-
-    /**
-     * @param CreateConversationCommand $createConversationCommand
-     * @throws \Exception
-     */
-    public function conversationExistExceptionTest(CreateConversationCommand $createConversationCommand): void
-    {
-        $this->expectException(ConversationExistException::class);
-        $createConversationCommand->execute();
-        $result = $createConversationCommand->getResult();
-        $this->assertFalse($result['result']);
     }
 
     /**

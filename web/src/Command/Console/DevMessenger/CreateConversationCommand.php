@@ -122,7 +122,7 @@ class CreateConversationCommand implements CommandInterface
         ) > 0 ) {
             $this->result['result'] = false;
 
-            throw new ConversationExistException('This conversation exist. Send user id is: ' . $sendUser->getId());
+            return;
         }
 
         /**
