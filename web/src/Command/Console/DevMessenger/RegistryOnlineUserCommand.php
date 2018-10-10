@@ -15,16 +15,10 @@ use App\Service\RedisService;
 
 class RegistryOnlineUserCommand implements CommandInterface
 {
-
     /**
      * @var RedisService
      */
     private $redisService;
-
-    /**
-     * @var \Predis\Client
-     */
-    private $redis;
 
     /**
      * @var array
@@ -49,13 +43,12 @@ class RegistryOnlineUserCommand implements CommandInterface
     /**
      * RegistryOnlineUserCommand constructor.
      * @param UserRepository $userRepository
+     * @param RedisService $redisService
      */
-    public function __construct(UserRepository $userRepository)
+    public function __construct(UserRepository $userRepository, RedisService $redisService)
     {
+        $this->redisService = $redisService;
         $this->userRepository = $userRepository;
-
-        $this->redisService = new RedisService();
-        $this->redis = $this->redisService->setDatabase(0);
     }
 
     /**
@@ -95,6 +88,7 @@ class RegistryOnlineUserCommand implements CommandInterface
 
     public function execute(): void
     {
+        $userByConn = $this->redisService->setDatabase(0);
         $message = $this->getMessage();
 
         $userToken = htmlspecialchars($message['userId']);
@@ -110,26 +104,27 @@ class RegistryOnlineUserCommand implements CommandInterface
          * Table users by conn id
          */
 
-        if ($this->redis->exists($userToken) > 0) {
+        $connId = $this->getConnId();
+
+        if ($userByConn->exists($connId) > 0) {
             $this->result = false;
+
             return;
         }
 
-        $connId = $this->getConnId();
-
-        $this->redis->set($connId, $userToken);
+        $userByConn->set($connId, $userToken);
 
         /**
          * Table users by Uuid
          */
 
-        $this->redis = $this->redisService->setDatabase(1);
+        $userByUuidRedis = $this->redisService->setDatabase(1);
 
-        if ($this->redis->exists($userToken) > 0) {
+        if ($userByUuidRedis->exists($userToken) > 0) {
             return;
         }
 
-        $this->redis->set($userToken, json_encode([
+        $userByUuidRedis->set($userToken, json_encode([
             'connId' => $connId,
             'id' => $user->getId()
         ]));
