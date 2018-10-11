@@ -254,6 +254,11 @@ class AddMessageCommand implements CommandInterface
             $conversation = $this->addMissingConversation($conversationId);
         } else {
             $conversation = json_decode($conversation, true);
+
+            //If first message return in key 0 array
+            if (is_array($conversation[0])) {
+                $conversation = $conversation[0];
+            }
         }
 
         $this->checkExistUserInConversation(
