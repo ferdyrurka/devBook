@@ -92,7 +92,7 @@ class UserRepository extends ServiceEntityRepository
     public function findByFirstNameOrSurname(string $phrase, int $userId): ?array
     {
         return $this->getEntityManager()->createQuery('
-            SELECT p FROM App:User p WHERE p.id != :id AND p.firstName LIKE :phrase OR p.surname LIKE :phrase
+            SELECT p FROM App:User p WHERE p.firstName LIKE :phrase OR p.surname LIKE :phrase AND p.id != :id
         ')
             ->setParameter(':phrase', '%' . $phrase . '%')
             ->setParameter(':id', $userId)
