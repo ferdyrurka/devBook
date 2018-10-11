@@ -149,6 +149,10 @@ class DevMessengerService implements MessageComponentInterface
              * return conversationId, full name user and result.
              */
             case 'create':
+                if (!array_key_exists('receiveId', $msg) || empty($msg['receiveId'])) {
+                    break;
+                }
+
                 $this->createConversationCommand->setReceiveUserToken(htmlspecialchars($msg['receiveId']));
                 $this->createConversationCommand->setSendUserToken(htmlspecialchars($msg['userId']));
 
