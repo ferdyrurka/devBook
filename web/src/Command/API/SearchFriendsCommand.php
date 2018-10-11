@@ -84,6 +84,8 @@ class SearchFriendsCommand implements CommandInterface
         foreach ($users as $user) {
             $result[$i]['fullName'] = $user->getFirstName() . ' ' . $user->getSurname();
             $result[$i]['userId'] = $user->getUserTokenReferences()->getPublicToken();
+
+            ++$i;
         }
 
         $this->result = $result;
