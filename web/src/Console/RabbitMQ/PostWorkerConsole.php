@@ -21,19 +21,26 @@ class PostWorkerConsole extends Command
     private $addPostCommand;
 
     /**
+     * @var RabbitMQConnectService
+     */
+    private $rabbitMQConnect;
+
+    /**
      * PostWorkerConsole constructor.
      * @param AddPostCommand $addPostCommand
+     * @param RabbitMQConnectService $rabbitMQConnect
      */
-    public function __construct(AddPostCommand $addPostCommand)
+    public function __construct(AddPostCommand $addPostCommand, RabbitMQConnectService $rabbitMQConnect)
     {
         $this->addPostCommand = $addPostCommand;
+        $this->rabbitMQConnect = $rabbitMQConnect;
 
         parent::__construct();
     }
 
     protected function configure(): void
     {
-        $this->setName('RabbitMQ:Post-work');
+        $this->setName('RabbitMQ:post-worker-start');
         $this->setDescription('This script tracks a RabbitMQ Queue name post');
         $this->setHelp('During writing');
     }
@@ -42,10 +49,9 @@ class PostWorkerConsole extends Command
      * @param InputInterface $input
      * @param OutputInterface $output
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    public function execute(InputInterface $input, OutputInterface $output): void
     {
-        $service = new RabbitMQConnectService();
-        $channel = $service->getChannel();
+        $channel = $this->rabbitMQConnect->getChannel();
 
         $channel->queue_declare('post', false, false, false);
 
@@ -69,8 +75,6 @@ class PostWorkerConsole extends Command
 
         $output->writeln('Connection closed, bye. :(');
 
-        $service->close($channel);
-
-        return;
+        $this->rabbitMQConnect->close($channel);
     }
 }
