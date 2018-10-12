@@ -16,6 +16,7 @@ use \Mockery;
  */
 class PostServiceTest extends TestCase
 {
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     private $postService;
     private $postRepository;
