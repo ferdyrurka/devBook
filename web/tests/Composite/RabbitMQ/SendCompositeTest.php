@@ -16,6 +16,8 @@ use \Mockery;
  */
 class SendCompositeTest extends TestCase
 {
+    use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
     public function testRun(): void
     {
         $sendComposite = new SendComposite();
