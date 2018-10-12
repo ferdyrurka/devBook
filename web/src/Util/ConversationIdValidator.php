@@ -15,7 +15,7 @@ class ConversationIdValidator
      */
     public function validate(string $messageId): bool
     {
-        if (preg_match('/^([a-z|A-Z|0-9|-]){5,36}$/', $messageId)) {
+        if (preg_match('/^([a-z|A-Z|0-9|-]){34,36}$/', $messageId)) {
             return true;
         }
 
