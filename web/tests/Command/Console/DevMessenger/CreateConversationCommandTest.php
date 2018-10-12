@@ -7,7 +7,6 @@ use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Entity\Conversation;
 use App\Entity\User;
 use App\Entity\UserToken;
-use App\Exception\ConversationExistException;
 use App\Exception\InvalidException;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
