@@ -4,10 +4,10 @@ declare(strict_types=1);
 namespace App\Tests\Composite\RabbitMQ\Send;
 
 use App\Composite\RabbitMQ\Send\AddPost;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit\Framework\TestCase;
-use App\Entity\User;
 
 /**
  * Class AddPostTest
@@ -15,6 +15,8 @@ use App\Entity\User;
  */
 class AddPostTest extends TestCase
 {
+    use MockeryPHPUnitIntegration;
+
     public function testExecute(): void
     {
         $addPost = new AddPost();
