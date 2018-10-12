@@ -1,6 +1,6 @@
 
 ###> symfony/framework-bundle ###
-.idea
+/.idea
 /public/bundles/
 web/var/
 web/vendor/
