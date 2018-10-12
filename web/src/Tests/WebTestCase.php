@@ -12,10 +12,9 @@ use Symfony\Component\BrowserKit\Client;
  */
 class WebTestCase extends WebTestCaseFramework
 {
-
     private const SERVER_PARAMETER = [
-        'HTTP_HOST' => '127.0.0.6',
-        'HTTP_USER_AGENT' => 'TESTS USER',
+        'HTTP_HOST' => 'localhost',
+        'HTTP_USER_AGENT' => 'TESTS USER'
     ];
 
     /**
