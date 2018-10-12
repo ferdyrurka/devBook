@@ -29,7 +29,17 @@ services:
           - mysql:/var/lib/mysql
         ports:
           - '3306:3306'
-          
+
+    mysqlTest:
+        image: mysql:5.7.23
+        environment:
+        - MYSQL_ROOT_PASSWORD=password
+        - MYSQL_DATABASE=mysql-db-test
+        volumes:
+        - mysqlTest:/var/lib/mysql
+        ports:
+        - '3307:3306'
+
     redis:
         build:
             context: ./etc/infrastructure/redis
@@ -40,3 +50,4 @@ services:
 
 volumes:
     mysql:
+    mysqlTest:
