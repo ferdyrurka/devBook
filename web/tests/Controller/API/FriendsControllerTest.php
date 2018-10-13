@@ -26,7 +26,7 @@ class FriendsControllerTest extends WebTestCase
     public function testPermission(): void
     {
         $this->guess->request('GET', '/api/search-friends?q=Lore');
-        $this->assertEquals(Response::HTTP_FORBIDDEN, $this->guess->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $this->guess->getResponse()->getStatusCode());
     }
 
     public function testSearchFriendsAction(): void

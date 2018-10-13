@@ -14,12 +14,11 @@ use Symfony\Component\HttpFoundation\Response;
 class DevMessengerControllerTest extends WebTestCase
 {
     private $guess;
-    private $user;
 
     public function setUp(): void
     {
         $this->guess = $this->createClientGuess();
-        $this->user = $this->createClientUser();
+
         parent::setUp();
     }
 
@@ -27,11 +26,5 @@ class DevMessengerControllerTest extends WebTestCase
     {
         $this->guess->request('GET', '/dev-messenger');
         $this->assertEquals(Response::HTTP_FOUND, $this->guess->getResponse()->getStatusCode());
-    }
-
-    public function testIndexAction(): void
-    {
-        $this->user->request('GET', '/dev-messenger');
-        $this->assertEquals(Response::HTTP_FOUND, $this->user->getResponse()->getStatusCode());
     }
 }

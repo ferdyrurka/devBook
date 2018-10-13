@@ -29,10 +29,10 @@ class MessagesControllerTest extends WebTestCase
             'GET',
             '/api/get-messages/3f5b1ef6-0963-404a-ad48-f3fc730b8e4a'
         );
-        $this->assertEquals(Response::HTTP_OK, $this->guess->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $this->guess->getResponse()->getStatusCode());
     }
 
-    public function testGetMessagesAction()
+    public function testGetMessagesAction(): void
     {
         $this->user->request(
             'GET',

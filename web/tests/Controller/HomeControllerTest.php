@@ -21,13 +21,13 @@ class HomeControllerTest extends WebTestCase
         parent::setUp();
     }
 
-    public function testPermission()
+    public function testPermission(): void
     {
         $this->user->request('GET', '/');
-        $this->assertEquals(Response::HTTP_FOUND, $this->user->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_FORBIDDEN, $this->user->getResponse()->getStatusCode());
     }
 
-    public function testIndexAction()
+    public function testIndexAction(): void
     {
         $this->guess->request('GET', '/');
         $this->assertEquals(Response::HTTP_OK, $this->guess->getResponse()->getStatusCode());

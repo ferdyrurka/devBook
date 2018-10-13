@@ -20,13 +20,14 @@ class ConversationControllerTest extends WebTestCase
     {
         $this->guess = $this->createClientGuess();
         $this->user = $this->createClientUser();
+
         parent::setUp();
     }
 
     public function testPermission(): void
     {
         $this->guess->request('GET', '/api/get-conversation-list');
-        $this->assertEquals(Response::HTTP_FORBIDDEN, $this->guess->getResponse()->getStatusCode());
+        $this->assertEquals(Response::HTTP_UNAUTHORIZED, $this->guess->getResponse()->getStatusCode());
     }
 
     public function testGetConversationListAction(): void
