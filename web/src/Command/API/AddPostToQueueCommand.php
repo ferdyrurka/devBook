@@ -24,6 +24,20 @@ class AddPostToQueueCommand implements CommandInterface
     private $userId;
 
     /**
+     * @var SendComposite
+     */
+    private $sendComposite;
+
+    /**
+     * AddPostToQueueCommand constructor.
+     * @param SendComposite $sendComposite
+     */
+    public function __construct(SendComposite $sendComposite)
+    {
+        $this->sendComposite = $sendComposite;
+    }
+
+    /**
      * @param int $userId
      */
     public function setUserId(int $userId): void
@@ -45,9 +59,7 @@ class AddPostToQueueCommand implements CommandInterface
         $addPost->setUserId($this->userId);
         $addPost->setContent(htmlspecialchars($this->content));
 
-        $sendComposite = new SendComposite();
-        $sendComposite->add($addPost);
-
-        $sendComposite->run();
+        $this->sendComposite->add($addPost);
+        $this->sendComposite->run();
     }
 }
