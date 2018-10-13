@@ -5,6 +5,7 @@ namespace App\Tests\Command\Console\DevMessenger;
 
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Entity\User;
+use App\Exception\UserNotFoundException;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use PHPUnit\Framework\TestCase;
@@ -68,6 +69,30 @@ class RegistryOnlineUserCommandTest extends TestCase
         $result = $registryOnlineUserCommand->getResult();
         $this->assertFalse($result);
 
+        $registryOnlineUserCommand->execute();
+        $result = $registryOnlineUserCommand->getResult();
+        $this->assertFalse($result);
+    }
+
+    public function testUserNotFoundException(): void
+    {
+        $client = Mockery::mock(Client::class);
+
+        $redisService = Mockery::mock(RedisService::class);
+        $redisService->shouldReceive('setDatabase')->once()->with(Mockery::on(function (int $key) {
+            if ($key === 0) {
+                return true;
+            }
+
+            return false;
+        }))->andReturn($client);
+
+        $userRepository = Mockery::mock(UserRepository::class);
+        $userRepository->shouldReceive('getOneByPrivateWebToken')->once()->withArgs(['userIdValue'])
+            ->andThrow(new UserNotFoundException());
+
+        $registryOnlineUserCommand = new RegistryOnlineUserCommand($userRepository, $redisService);
+        $registryOnlineUserCommand->setMessage(['userId' => 'userIdValue']);
         $registryOnlineUserCommand->execute();
         $result = $registryOnlineUserCommand->getResult();
         $this->assertFalse($result);
