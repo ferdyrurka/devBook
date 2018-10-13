@@ -34,4 +34,10 @@ class FriendsControllerTest extends WebTestCase
         $this->user->request('GET', '/api/search-friends?q=Lore');
         $this->assertEquals(Response::HTTP_OK, $this->user->getResponse()->getStatusCode());
     }
+
+    public function testInvalidArguments(): void
+    {
+        $this->user->request('GET', '/api/search-friends');
+        $this->assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $this->user->getResponse()->getStatusCode());
+    }
 }
