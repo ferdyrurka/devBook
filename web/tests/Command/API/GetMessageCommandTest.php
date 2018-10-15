@@ -5,6 +5,7 @@ namespace App\Tests\Command\API;
 
 use App\Command\API\GetMessageCommand;
 use App\Entity\Message;
+use App\Exception\InvalidException;
 use App\Repository\MessageRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -55,5 +56,15 @@ class GetMessageCommandTest extends TestCase
 
         $this->assertEquals($time->format('Y-m-d H:i:s'), $result[0]['date']);
         $this->assertEquals($time->format('Y-m-d H:i:s'), $result[1]['date']);
+    }
+
+    public function testInvalidArguments(): void
+    {
+        $messageRepository = Mockery::mock(MessageRepository::class);
+
+        $getMessageCommand = new GetMessageCommand($messageRepository);
+
+        $this->expectException(InvalidException::class);
+        $getMessageCommand->setConversationId('FAILED');
     }
 }
