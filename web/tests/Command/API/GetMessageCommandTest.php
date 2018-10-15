@@ -63,8 +63,9 @@ class GetMessageCommandTest extends TestCase
         $messageRepository = Mockery::mock(MessageRepository::class);
 
         $getMessageCommand = new GetMessageCommand($messageRepository);
+        $getMessageCommand->setConversationId('FAILED');
 
         $this->expectException(InvalidException::class);
-        $getMessageCommand->setConversationId('FAILED');
+        $getMessageCommand->execute();
     }
 }
