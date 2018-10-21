@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Exception\UserNotFoundException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -22,8 +23,12 @@ class DevMessengerController extends Controller
      */
     public function indexAction(): array
     {
+        if (empty($user = $this->getUser())) {
+            throw new UserNotFoundException('User not found!');
+        }
+
         return [
-            'userId' => $this->getUser()->getUserTokenReferences()->getPrivateWebToken(),
+            'userId' => $user->getUserTokenReferences()->getPrivateWebToken(),
         ];
     }
 }

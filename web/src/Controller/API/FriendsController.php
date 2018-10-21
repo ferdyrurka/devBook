@@ -5,6 +5,7 @@ namespace App\Controller\API;
 
 use App\Command\API\SearchFriendsCommand;
 use App\Exception\InvalidException;
+use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -41,8 +42,12 @@ class FriendsController extends Controller
             );
         }
 
+        if (empty($user = $this->getUser())) {
+            throw new UserNotFoundException('User not found!');
+        }
+
         $searchFriendsCommand->setPhrase($phrase);
-        $searchFriendsCommand->setUserId($this->getUser()->getId());
+        $searchFriendsCommand->setUserId($user->getId());
 
         $commandService->setCommand($searchFriendsCommand);
         $commandService->execute();

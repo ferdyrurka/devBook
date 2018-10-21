@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller\API;
 
 use App\Command\API\AddPostToQueueCommand;
+use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use App\Service\PostService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -31,18 +32,25 @@ class PostController extends Controller
     /**
      * @param Request $request
      * @param CommandService $service
+     * @param AddPostToQueueCommand $addPostToQueueCommand
      * @return JsonResponse
      * @Route("/add-post", methods={"POST"}, name="addPost.post")
      * @IsGranted("ROLE_USER")
      */
-    public function addPost(Request $request, CommandService $service): JsonResponse
-    {
-        if (!empty($content = $request->get('content'))) {
-            $command = new AddPostToQueueCommand();
-            $command->setUserId($this->getUser()->getId());
-            $command->setContent($content);
+    public function addPost(
+        Request $request,
+        CommandService $service,
+        AddPostToQueueCommand $addPostToQueueCommand
+    ): JsonResponse {
+        if (empty($user = $this->getUser())) {
+            throw new UserNotFoundException('User not found!');
+        }
 
-            $service->setCommand($command);
+        if (!empty($content = $request->get('content'))) {
+            $addPostToQueueCommand->setUserId($user->getId());
+            $addPostToQueueCommand->setContent($content);
+
+            $service->setCommand($addPostToQueueCommand);
             $service->execute();
 
             return new JsonResponse(['success' => true]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller\API;
 
 use App\Command\API\GetMessageCommand;
+use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -32,15 +33,19 @@ class MessagesController extends Controller
         string $conversationId,
         int $offset = 0
     ): JsonResponse {
+        if (empty($user = $this->getUser())) {
+            throw new UserNotFoundException('User not found!');
+        }
+
         $getMessageCommand->setConversationId($conversationId);
-        $getMessageCommand->setUserId($this->getUser()->getId());
+        $getMessageCommand->setUserId($user->getId());
         $getMessageCommand->setOffset($offset);
 
         $commandService->setCommand($getMessageCommand);
         $commandService->execute();
 
         return new JsonResponse([
-            $commandService->getResult(),
+            $commandService->getResult()
         ]);
     }
 }

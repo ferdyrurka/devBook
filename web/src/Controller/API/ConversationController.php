@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller\API;
 
 use App\Command\API\GetConversationListCommand;
+use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -27,7 +28,11 @@ class ConversationController extends Controller
         CommandService $commandService,
         GetConversationListCommand $command
     ): JsonResponse {
-        $command->setUser($this->getUser());
+        if (empty($user = $this->getUser())) {
+            throw new UserNotFoundException('User not found!');
+        }
+
+        $command->setUser($user);
         $commandService->setCommand($command);
         $commandService->execute();
 
