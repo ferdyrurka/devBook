@@ -7,8 +7,13 @@ use App\Console\DevMessenger\ServerDevMessenger;
 use App\Service\DevMessengerService;
 use App\Service\RedisService;
 use Predis\Client;
+use Ratchet\Http\HttpServer;
+use Ratchet\Server\IoServer;
+use Ratchet\WebSocket\WsServer;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use \Mockery;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Class ServerDevMessengerTest
@@ -18,7 +23,11 @@ class ServerDevMessengerTest extends KernelTestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
-    public function testCommand(): void
+    /**
+     * @runInSeparateProcess
+     * @preserveGlobalState disabled
+     */
+    public function testCommandAndExecute(): void
     {
         $client = Mockery::mock(Client::class);
         $client->shouldReceive('flushdb')->times(2);
@@ -34,8 +43,24 @@ class ServerDevMessengerTest extends KernelTestCase
 
         $devMessengerService = Mockery::mock(DevMessengerService::class);
 
+        // Execute tests
+
+        $wsServer = Mockery::mock('overload:' . WsServer::class);
+        $wsServer->shouldReceive('__construct')->once()->withArgs([DevMessengerService::class]);
+
+        $httpServer = Mockery::mock('overload:' . HttpServer::class);
+        $httpServer->shouldReceive('__construct')->once()->withArgs([WsServer::class]);
+
+        $ioServer = Mockery::mock('overload:' . IoServer::class);
+        $ioServer->shouldReceive('factory')->withArgs([HttpServer::class, '2013'])->once()->andReturn($ioServer);
+        $ioServer->shouldReceive('run')->once();
+
         $serverDevMessenger = new ServerDevMessenger($devMessengerService, $redisService);
 
-        //No tests execute because it will start a webSocket server
+        $output = Mockery::mock(OutputInterface::class);
+        $output->shouldReceive('writeln');
+        $input = Mockery::mock(InputInterface::class);
+
+        $serverDevMessenger->execute($input, $output);
     }
 }
