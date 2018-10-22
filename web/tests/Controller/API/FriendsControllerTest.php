@@ -3,9 +3,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller\API;
 
+use App\Command\API\SearchFriendsCommand;
 use App\Controller\API\FriendsController;
+use App\Exception\UserNotFoundException;
+use App\Service\CommandService;
 use App\Tests\WebTestCase;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use \Mockery;
 
 /**
  * Class FriendsControllerTest
@@ -39,5 +44,22 @@ class FriendsControllerTest extends WebTestCase
     {
         $this->user->request('GET', '/api/search-friends');
         $this->assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $this->user->getResponse()->getStatusCode());
+    }
+
+    public function testUserNotFoundException(): void
+    {
+        $friendsController = Mockery::mock(FriendsController::class)->makePartial()
+            ->shouldAllowMockingProtectedMethods();
+        $friendsController->shouldReceive('getUser')->andReturnNull()->once();
+
+        $request = Mockery::mock(Request::class);
+        $request->shouldReceive('get')->withArgs(['q'])->andReturn('q');
+
+        $this->expectException(UserNotFoundException::class);
+        $friendsController->searchFriendsAction(
+            Mockery::mock(CommandService::class),
+            Mockery::mock(SearchFriendsCommand::class),
+            $request
+        );
     }
 }
