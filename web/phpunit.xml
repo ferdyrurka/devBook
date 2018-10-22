@@ -2,8 +2,6 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/7.3/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         forceCoversAnnotation="true"
-         beStrictAboutCoversAnnotation="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutTodoAnnotatedTests="true"
          colors="true"
@@ -21,13 +19,24 @@
 
     <testsuites>
         <testsuite name="default">
-            <directory suffix="Test.php">tests</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">src</directory>
+        <whitelist>
+            <directory>./src</directory>
+
+            <!-- Exclude directory and file -->
+
+            <exclude>
+                <directory>./src/Form/Model</directory>
+                <directory>./src/Tests</directory>
+                <directory>./src/Exception</directory>
+                <directory>./src/Entity</directory>
+                <directory>./src/Repository</directory>
+                <file>./src/Kernel.php</file>
+            </exclude>
         </whitelist>
     </filter>
 
