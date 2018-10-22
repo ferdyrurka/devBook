@@ -22,6 +22,7 @@ class UserAuthenticator extends AbstractGuardAuthenticator
     /**
      * @param Request $request
      * @return bool
+     * @codeCoverageIgnore
      */
     public function supports(Request $request): bool
     {
@@ -31,6 +32,7 @@ class UserAuthenticator extends AbstractGuardAuthenticator
     /**
      * @param Request $request
      * @return array
+     * @codeCoverageIgnore
      */
     public function getCredentials(Request $request): array
     {
@@ -109,6 +111,6 @@ class UserAuthenticator extends AbstractGuardAuthenticator
      */
     public function supportsRememberMe(): bool
     {
-        return true;
+        return false;
     }
 }
