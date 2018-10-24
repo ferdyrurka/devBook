@@ -43,13 +43,14 @@ class SecurityController extends Controller
         }
 
         return $this->forward(HomeController::class . '::indexAction', [
-            'request' => $request,
+            'request' => $request
         ]);
     }
 
     /**
      * @Route("/sign-in", methods={"POST"})
      * @Security("not has_role('ROLE_USER')")
+     * @codeCoverageIgnore
      */
     public function signInAction(): void
     {
@@ -59,6 +60,7 @@ class SecurityController extends Controller
     /**
      * @Route("/log-out", methods={"GET"}, name="logout.security")
      * @IsGranted("ROLE_USER")
+     * @codeCoverageIgnore
      */
     public function logoutAction(): void
     {
