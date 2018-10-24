@@ -1,9 +1,17 @@
+<<<<<<< HEAD
 
 ###> symfony/framework-bundle ###
 /.idea
 /public/bundles/
 web/var/
 web/vendor/
+=======
+###> symfony/framework-bundle ###
+.idea
+/public/bundles/
+/var/
+/vendor/
+>>>>>>> Update gitignore
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###
@@ -15,6 +23,10 @@ web/vendor/
 /phpunit.xml
 ###< phpunit/phpunit ###
 
+<<<<<<< HEAD
 #lock
 web/composer.lock
 web/symfony.lock
+=======
+
+>>>>>>> Update gitignore
