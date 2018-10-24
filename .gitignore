@@ -1,3 +1,7 @@
 .idea
 web/var/
+<<<<<<< HEAD
 web/vendor/
+=======
+web/vendor/
+>>>>>>> DevMessenger
