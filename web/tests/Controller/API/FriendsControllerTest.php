@@ -62,4 +62,13 @@ class FriendsControllerTest extends WebTestCase
             $request
         );
     }
+
+    public function testSearchUser(): void
+    {
+        $this->user->request('GET', '/api/search-friends?q=Admin');
+        $this->assertEmpty(str_replace('[]', '', $this->user->getResponse()->getContent()));
+
+        $this->user->request('GET', '/api/search-friends?q=User');
+        $this->assertNotNull($this->user->getResponse()->getContent());
+    }
 }
