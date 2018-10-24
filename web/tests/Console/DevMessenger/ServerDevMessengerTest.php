@@ -58,7 +58,7 @@ class ServerDevMessengerTest extends KernelTestCase
         $serverDevMessenger = new ServerDevMessenger($devMessengerService, $redisService);
 
         $output = Mockery::mock(OutputInterface::class);
-        $output->shouldReceive('writeln');
+        $output->shouldReceive('writeln')->once();
         $input = Mockery::mock(InputInterface::class);
 
         $serverDevMessenger->execute($input, $output);
