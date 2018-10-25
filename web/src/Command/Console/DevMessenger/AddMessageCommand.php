@@ -121,8 +121,9 @@ class AddMessageCommand implements CommandInterface
         $conversationRedis = $this->redisService->setDatabase(2);
 
         $users = [];
+        $valuesUser = $conversation->getUserReferences()->getValues();
 
-        foreach ($conversation->getUserReferences()->getValues() as $user) {
+        foreach ($valuesUser as $user) {
             $user = $user->getUserTokenReferences();
 
             $users[] = $user->getPrivateWebToken();
