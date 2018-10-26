@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command;
+namespace App\Tests\Handler;
 
 use App\Command\CreateUserCommand;
 use App\Entity\User;
