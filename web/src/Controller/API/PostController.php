@@ -39,16 +39,14 @@ class PostController extends Controller
      */
     public function addPost(
         Request $request,
-        CommandService $service,
-        AddPostToQueueCommand $addPostToQueueCommand
+        CommandService $service
     ): JsonResponse {
         if (empty($user = $this->getUser())) {
             throw new UserNotFoundException('User not found!');
         }
 
         if (!empty($content = $request->get('content'))) {
-            $addPostToQueueCommand->setUserId($user->getId());
-            $addPostToQueueCommand->setContent($content);
+            $addPostToQueueCommand = new AddPostToQueueCommand($content, $user->getId());
 
             $service->setCommand($addPostToQueueCommand);
             $service->execute();
