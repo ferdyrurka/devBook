@@ -4,8 +4,6 @@ declare(strict_types=1);
 namespace App\Command\API;
 
 use App\Command\CommandInterface;
-use App\Composite\RabbitMQ\Send\AddPost;
-use App\Composite\RabbitMQ\SendComposite;
 
 /**
  * Class AddPostToQueueCommand
@@ -24,42 +22,29 @@ class AddPostToQueueCommand implements CommandInterface
     private $userId;
 
     /**
-     * @var SendComposite
-     */
-    private $sendComposite;
-
-    /**
      * AddPostToQueueCommand constructor.
-     * @param SendComposite $sendComposite
+     * @param $content string
+     * @param $userId integer
      */
-    public function __construct(SendComposite $sendComposite)
+    public function __construct(string $content, int $userId)
     {
-        $this->sendComposite = $sendComposite;
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId(int $userId): void
-    {
+        $this->content = $content;
         $this->userId = $userId;
     }
 
     /**
-     * @param string $content
+     * @return string
      */
-    public function setContent(string $content): void
+    public function getContent(): string
     {
-        $this->content = $content;
+        return $this->content;
     }
 
-    public function execute(): void
+    /**
+     * @return int
+     */
+    public function getUserId(): int
     {
-        $addPost = new AddPost();
-        $addPost->setUserId($this->userId);
-        $addPost->setContent(htmlspecialchars($this->content));
-
-        $this->sendComposite->add($addPost);
-        $this->sendComposite->run();
+        return $this->userId;
     }
 }
