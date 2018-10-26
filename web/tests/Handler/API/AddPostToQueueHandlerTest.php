@@ -1,11 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command\API;
+namespace App\Tests\Handler\API;
 
 use App\Command\API\AddPostToQueueCommand;
 use App\Composite\RabbitMQ\Send\AddPost;
 use App\Composite\RabbitMQ\SendComposite;
+use App\Handler\API\AddPostToQueueHandler;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 
@@ -13,7 +14,7 @@ use \Mockery;
  * Class AddPostToQueueCommandTest
  * @package App\Tests\Command\API
  */
-class AddPostToQueueCommandTest extends TestCase
+class AddPostToQueueHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -23,11 +24,9 @@ class AddPostToQueueCommandTest extends TestCase
         $sendComposite->shouldReceive('add')->withArgs([AddPost::class])->once();
         $sendComposite->shouldReceive('run')->once();
 
-        $addPostToQueue = new AddPostToQueueCommand($sendComposite);
+        $addPostToQueueCommand = new AddPostToQueueCommand('content', 1);
 
-        $addPostToQueue->setContent('content');
-        $addPostToQueue->setUserId(1);
-        $addPostToQueue->execute();
+        $addPostToQueueHandler = new AddPostToQueueHandler($sendComposite);
+        $addPostToQueueHandler->handle($addPostToQueueCommand);
     }
 }
-
