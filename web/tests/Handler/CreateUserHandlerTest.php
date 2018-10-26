@@ -6,6 +6,7 @@ namespace App\Tests\Handler;
 use App\Command\CreateUserCommand;
 use App\Entity\User;
 use App\Entity\UserToken;
+use App\Handler\CreateUserHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -15,15 +16,15 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
  * Class CreateUserCommandTest
  * @package App\Tests\Command
  */
-class CreateUserCommandTest extends TestCase
+class CreateUserHandlerTest extends TestCase
 {
 
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     /**
-     * @var CreateUserCommand
+     * @var CreateUserHandler
      */
-    private $createUserCommand;
+    private $createUserHandler;
 
     /**
      * @var EntityManagerInterface
@@ -39,7 +40,7 @@ class CreateUserCommandTest extends TestCase
     {
         $this->entityManager = Mockery::mock(EntityManagerInterface::class);
         $this->passwordEncoder = Mockery::mock(UserPasswordEncoderInterface::class);
-        $this->createUserCommand = new CreateUserCommand($this->entityManager, $this->passwordEncoder);
+        $this->createUserHandler = new CreateUserHandler($this->entityManager, $this->passwordEncoder);
 
         parent::setUp();
     }
@@ -70,8 +71,8 @@ class CreateUserCommandTest extends TestCase
         }))->times(2);
         $this->entityManager->shouldReceive('flush')->once();
 
-        $this->createUserCommand->setUser($user);
+        $createUserCommand = new CreateUserCommand($user);
 
-        $this->assertNull($this->createUserCommand->execute());
+        $this->createUserHandler->handle($createUserCommand);
     }
 }
