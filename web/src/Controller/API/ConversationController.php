@@ -19,20 +19,18 @@ class ConversationController extends Controller
 {
     /**
      * @param CommandService $commandService
-     * @param GetConversationListCommand $command
      * @return JsonResponse
      * @Route("/api/get-conversation-list", methods={"GET"}, name="getConversationList.conversation")
      * @IsGranted("ROLE_USER")
      */
     public function getConversationListAction(
-        CommandService $commandService,
-        GetConversationListCommand $command
+        CommandService $commandService
     ): JsonResponse {
         if (empty($user = $this->getUser())) {
             throw new UserNotFoundException('User not found!');
         }
 
-        $command->setUser($user);
+        $command = new GetConversationListCommand($user);
         $commandService->setCommand($command);
         $commandService->execute();
 
