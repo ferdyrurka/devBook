@@ -22,19 +22,18 @@ class SecurityController extends Controller
 {
     /**
      * @param Request $request
-     * @param CreateUserCommand $command
      * @return Response
      * @throws \Exception
      * @Route("/register", methods={"POST"})
      * @Security("not has_role('ROLE_USER')")
      */
-    public function signUpAction(Request $request, CreateUserCommand $command): Response
+    public function signUpAction(Request $request): Response
     {
         $form = $this->createForm(SignUpForm::class, new User());
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $command->setUser($form->getData());
+            $command = new CreateUserCommand($this->getUser());
 
             $commandService = new CommandService();
             $commandService->setCommand($command)->execute();
