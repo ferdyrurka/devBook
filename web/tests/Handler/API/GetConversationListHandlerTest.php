@@ -1,12 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command\API;
+namespace App\Tests\Handler\API;
 
 use App\Command\API\GetConversationListCommand;
 use App\Entity\Conversation;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Handler\API\GetConversationListHandler;
 use App\Repository\MessageRepository;
 use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -17,7 +18,7 @@ use \Mockery;
  * Class GetConversationListCommandTest
  * @package App\Tests\Controller\API
  */
-class GetConversationListCommandTest extends TestCase
+class GetConversationListHandlerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -59,9 +60,10 @@ class GetConversationListCommandTest extends TestCase
 
         //Tests
 
-        $getConversationListCommand = new GetConversationListCommand($messageRepository);
-        $getConversationListCommand->setUser($user);
-        $this->assertNull($getConversationListCommand->execute());
+        $getConversationListCommand = new GetConversationListCommand($user);
+
+        $getConversationListHandler = new GetConversationListHandler($messageRepository);
+        $getConversationListHandler->handle($getConversationListCommand);
 
         $result = $getConversationListCommand->getResult();
         $this->assertNotEmpty($result);
