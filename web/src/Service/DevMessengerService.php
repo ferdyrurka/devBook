@@ -33,11 +33,6 @@ class DevMessengerService implements MessageComponentInterface
     private $commandService;
 
     /**
-     * @var CreateConversationCommand
-     */
-    private $createConversationCommand;
-
-    /**
      * @var RegistryOnlineUserCommand
      */
     private $registryOnlineUserCommand;
@@ -50,13 +45,11 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
-     * @param CreateConversationCommand $createConversationCommand
      * @param RegistryOnlineUserCommand $registryOnlineUserCommand
      * @param DeleteOnlineUserCommand $deleteOnlineUserCommand
      */
     public function __construct(
         CommandService $commandService,
-        CreateConversationCommand $createConversationCommand,
         RegistryOnlineUserCommand $registryOnlineUserCommand,
         DeleteOnlineUserCommand $deleteOnlineUserCommand
     ) {
@@ -64,7 +57,6 @@ class DevMessengerService implements MessageComponentInterface
 
         $this->registryOnlineUserCommand = $registryOnlineUserCommand;
         $this->commandService = $commandService;
-        $this->createConversationCommand = $createConversationCommand;
         $this->deleteOnlineUserCommand = $deleteOnlineUserCommand;
     }
 
@@ -144,10 +136,11 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $this->createConversationCommand->setReceiveUserToken(htmlspecialchars($msg['receiveId']));
-                $this->createConversationCommand->setSendUserToken(htmlspecialchars($msg['userId']));
-
-                $this->commandService->setCommand($this->createConversationCommand);
+                $createConversationCommand = new CreateConversationCommand(
+                    htmlspecialchars($msg['userId']),
+                    htmlspecialchars($msg['receiveId'])
+                );
+                $this->commandService->setCommand($createConversationCommand);
                 $this->commandService->execute();
 
                 $result = $this->commandService->getResult();
