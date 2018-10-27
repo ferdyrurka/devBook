@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Command\API;
 
 use App\Command\CommandInterface;
-use App\Repository\UserRepository;
 
 /**
  * Class GetFriendsCommand
@@ -12,11 +11,6 @@ use App\Repository\UserRepository;
  */
 class SearchFriendsCommand implements CommandInterface
 {
-    /**
-     * @var UserRepository
-     */
-    private $userRepository;
-
     /**
      * @var int
      */
@@ -28,41 +22,22 @@ class SearchFriendsCommand implements CommandInterface
     private $phrase;
 
     /**
-     * @var array
+     * SearchFriendsCommand constructor.
+     * @param int $userId
+     * @param string $phrase
      */
-    private $result;
-
-    /**
-     * GetFriendsCommand constructor.
-     * @param UserRepository $userRepository
-     */
-    public function __construct(UserRepository $userRepository)
+    public function __construct(int $userId, string $phrase)
     {
-        $this->userRepository = $userRepository;
+        $this->userId = $userId;
+        $this->phrase = $phrase;
     }
 
     /**
      * @return string
      */
-    private function getPhrase(): string
+    public function getPhrase(): string
     {
         return $this->phrase;
-    }
-
-    /**
-     * @param string $phrase
-     */
-    public function setPhrase(string $phrase): void
-    {
-        $this->phrase = $phrase;
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId(int $userId): void
-    {
-        $this->userId = $userId;
     }
 
     /**
@@ -71,31 +46,5 @@ class SearchFriendsCommand implements CommandInterface
     public function getUserId(): int
     {
         return $this->userId;
-    }
-
-    public function execute(): void
-    {
-        $phrase = htmlspecialchars($this->getPhrase());
-        $users = $this->userRepository->findByFirstNameOrSurname($phrase, $this->getUserId());
-
-        $result = [];
-        $i = 0;
-
-        foreach ($users as $user) {
-            $result[$i]['fullName'] = $user->getFirstName() . ' ' . $user->getSurname();
-            $result[$i]['userId'] = $user->getUserTokenReferences()->getPublicToken();
-
-            ++$i;
-        }
-
-        $this->result = $result;
-    }
-
-    /**
-     * @return array
-     */
-    public function getResult(): array
-    {
-        return $this->result;
     }
 }
