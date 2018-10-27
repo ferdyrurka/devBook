@@ -8,6 +8,7 @@ use App\Entity\Conversation;
 use App\Entity\User;
 use App\Entity\UserToken;
 use App\Exception\InvalidException;
+use App\Handler\Console\DevMessenger\CreateConversationHandler;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,14 +20,14 @@ use Predis\Client;
  * Class CreateConversationCommandTest
  * @package App\Tests\Command\Console\DevMessenger
  */
-class CreateConversationCommandTest extends TestCase
+class CreateConversationHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     /**
      * @throws \Exception
      */
-    public function testExecute()
+    public function testExecute(): void
     {
         $client = Mockery::mock(Client::class);
         $client->shouldReceive('set')->once();
@@ -71,17 +72,17 @@ class CreateConversationCommandTest extends TestCase
             ->once()->andReturn($userSend);
         $userRepository->shouldReceive('getCountConversationByUsersId')->once()->withArgs([1, 2])->andReturn(0, 1);
 
-        $createConversationCommand = new CreateConversationCommand(
+        $createConversationHandler = new CreateConversationHandler(
             $entityManager,
             $userRepository,
             $redisService
         );
-        $createConversationCommand->setSendUserToken('send_user_token');
-        $createConversationCommand->setReceiveUserToken('receive_user_token');
 
-        $this->assertNull($createConversationCommand->execute());
+        $createConversationCommand = new CreateConversationCommand('send_user_token', 'receive_user_token');
 
-        $result = $createConversationCommand->getResult();
+        $createConversationHandler->handle($createConversationCommand);
+
+        $result = $createConversationHandler->getResult();
 
         $this->assertNotNull($result['conversationId']);
         $this->assertTrue($result['result']);
@@ -99,18 +100,17 @@ class CreateConversationCommandTest extends TestCase
         $client = Mockery::mock(Client::class);
         $redisService->shouldReceive('setDatabase')->withArgs([2])->andReturn($client);
 
-        $createConversationCommand = new CreateConversationCommand(
+        $createConversationHandler = new CreateConversationHandler(
             $entityManager,
             $userRepository,
             $redisService
         );
 
-        $createConversationCommand->setSendUserToken('send_user_token');
-        $createConversationCommand->setReceiveUserToken('send_user_token');
+        $createConversationCommand = new CreateConversationCommand('send_user_token', 'send_user_token');
 
         $this->expectException(InvalidException::class);
-        $createConversationCommand->execute();
-        $result = $createConversationCommand->getResult();
+        $createConversationHandler->handle($createConversationCommand);
+        $result = $createConversationHandler->getResult();
         $this->assertFalse($result['result']);
     }
 }
