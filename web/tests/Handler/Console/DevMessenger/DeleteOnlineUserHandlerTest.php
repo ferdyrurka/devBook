@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Tests\Handler\Console\DevMessenger;
 
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
+use App\Handler\Console\DevMessenger\DeleteOnlineUserHandler;
 use App\Service\RedisService;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -13,7 +14,7 @@ use Predis\Client;
  * Class DeleteOnlineUserCommandTest
  * @package App\Tests\Command\Console\DevMessenger
  */
-class DeleteOnlineUserCommandTest extends TestCase
+class DeleteOnlineUserHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -45,15 +46,16 @@ class DeleteOnlineUserCommandTest extends TestCase
             }))->times(5)->andReturn($client)
         ;
 
-        $deleteOnlineUserCommand = new DeleteOnlineUserCommand($redisService);
-        $deleteOnlineUserCommand->setConnId(10);
+        $deleteOnlineUserCommand = new DeleteOnlineUserCommand(10);
+
+        $deleteOnlineUserHandler = new DeleteOnlineUserHandler($redisService);
         #Okej success
-        $deleteOnlineUserCommand->execute();
+        $deleteOnlineUserHandler->handle($deleteOnlineUserCommand);
 
         #Not exist this user in userByUUID (1)
-        $deleteOnlineUserCommand->execute();
+        $deleteOnlineUserHandler->handle($deleteOnlineUserCommand);
 
         #Not exist in byConn
-        $deleteOnlineUserCommand->execute();
+        $deleteOnlineUserHandler->handle($deleteOnlineUserCommand);
     }
 }
