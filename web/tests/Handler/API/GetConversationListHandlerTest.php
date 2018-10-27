@@ -65,7 +65,7 @@ class GetConversationListHandlerTest extends TestCase
         $getConversationListHandler = new GetConversationListHandler($messageRepository);
         $getConversationListHandler->handle($getConversationListCommand);
 
-        $result = $getConversationListCommand->getResult();
+        $result = $getConversationListHandler->getResult();
         $this->assertNotEmpty($result);
         $this->assertEquals('FirstName Surname', $result[0]['fullName']);
         $this->assertEquals('Hello World', $result[0]['lastMessage']);
