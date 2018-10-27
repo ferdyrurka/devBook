@@ -7,6 +7,6 @@ namespace App\Exception;
  * Class InvalidException
  * @package App\Exception
  */
-class InvalidException extends \Exception
+class InvalidException extends DevBookException
 {
 }

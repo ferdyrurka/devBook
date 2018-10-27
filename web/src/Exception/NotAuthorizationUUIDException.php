@@ -6,6 +6,6 @@ namespace App\Exception;
  * Class NotAuthorizationUUIDException
  * @package App\Exception
  */
-class NotAuthorizationUUIDException extends \Exception
+class NotAuthorizationUUIDException extends DevBookException
 {
 }

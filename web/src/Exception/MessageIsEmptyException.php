@@ -6,6 +6,6 @@ namespace App\Exception;
 /**
  * Class MessageIsEmptyException
  */
-class MessageIsEmptyException extends \Exception
+class MessageIsEmptyException extends DevBookException
 {
 }

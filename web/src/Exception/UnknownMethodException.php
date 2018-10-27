@@ -7,7 +7,7 @@ namespace App\Exception;
  * Class UnknownMethodException
  * @package App\Exception
  */
-class UnknownMethodException extends \Exception
+class UnknownMethodException extends DevBookException
 {
 
 }
