@@ -63,14 +63,13 @@ class PostControllerTest extends WebTestCase
         $request->shouldReceive('get')->withArgs(['content'])->andReturn('contentValue', null)->times(2);
 
         $commandService = Mockery::mock(CommandService::class);
-        $commandService->shouldReceive('setCommand')->with(Mockery::on(function (AddPostToQueueCommand $addPostToQueueCommand) {
+        $commandService->shouldReceive('handle')->with(Mockery::on(function (AddPostToQueueCommand $addPostToQueueCommand) {
             if ($addPostToQueueCommand->getContent() === 'contentValue' && $addPostToQueueCommand->getUserId() === 1) {
                 return true;
             }
 
             return false;
         }))->once();
-        $commandService->shouldReceive('execute')->once();
 
         $result = $postController->addPost($request, $commandService);
         $this->assertInstanceOf(JsonResponse::class, $result);

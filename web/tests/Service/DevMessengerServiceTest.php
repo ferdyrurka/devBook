@@ -38,7 +38,7 @@ class DevMessengerServiceTest extends TestCase
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
-        $this->commandService->shouldReceive('setCommand')->times(3)->with(Mockery::on(function ($class) {
+        $this->commandService->shouldReceive('handle')->times(3)->with(Mockery::on(function ($class) {
             if (($class instanceof RegistryOnlineUserCommand && array_key_exists('userId', $class->getMessage()) && $class->getConnId() === 1) ||
                 $class instanceof DeleteOnlineUserCommand
             ) {
@@ -47,7 +47,6 @@ class DevMessengerServiceTest extends TestCase
 
             return false;
         }));
-        $this->commandService->shouldReceive('execute')->times(3);
         $this->commandService->shouldReceive('getResult')->times(2)->andReturn(true, false);
 
         $this->devMessengerService->onMessage($conn, json_encode([
@@ -89,14 +88,13 @@ class DevMessengerServiceTest extends TestCase
 
         //Send message
 
-        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (AddMessageCommand $addMessageCommand) {
+        $this->commandService->shouldReceive('handle')->with(Mockery::on(function (AddMessageCommand $addMessageCommand) {
             $array = $addMessageCommand->getMessage();
             if ((array_key_exists('conversationId', $array) && array_key_exists('message', $array)) && $addMessageCommand->getFromId() === 1) {
                 return true;
             }
             return true;
         }))->once();
-        $this->commandService->shouldReceive('execute')->once();
         $this->commandService->shouldReceive('getResult')->once()->andReturn([1]);
 
         $this->devMessengerService->onMessage($conn, json_encode([
@@ -142,7 +140,7 @@ class DevMessengerServiceTest extends TestCase
             return false;
         }));
 
-        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (CreateConversationCommand $createConversationCommand) {
+        $this->commandService->shouldReceive('handle')->with(Mockery::on(function (CreateConversationCommand $createConversationCommand) {
             if ($createConversationCommand->getReceiveUserToken() === 'receiveIdValue' &&
                 $createConversationCommand->getSendUserToken() === 'userIdValue'
             ) {
@@ -151,7 +149,6 @@ class DevMessengerServiceTest extends TestCase
 
             return false;
         }))->once();
-        $this->commandService->shouldReceive('execute')->once();
         $this->commandService->shouldReceive('getResult')->once()->andReturn([
             'result' => true,
             'conversationId' => 'conversationIdValue',
@@ -177,14 +174,13 @@ class DevMessengerServiceTest extends TestCase
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
-        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (DeleteOnlineUserCommand $deleteOnlineUserCommand) {
+        $this->commandService->shouldReceive('handle')->with(Mockery::on(function (DeleteOnlineUserCommand $deleteOnlineUserCommand) {
             if ($deleteOnlineUserCommand->getConnId() === 1) {
                 return true;
             }
 
             return false;
         }))->once();
-        $this->commandService->shouldReceive('execute')->once();
 
         $this->devMessengerService->onClose($conn);
     }
