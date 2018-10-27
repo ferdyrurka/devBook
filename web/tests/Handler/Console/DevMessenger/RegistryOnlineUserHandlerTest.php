@@ -6,6 +6,7 @@ namespace App\Tests\Handler\Console\DevMessenger;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Entity\User;
 use App\Exception\UserNotFoundException;
+use App\Handler\Console\DevMessenger\RegistryOnlineUserHandler;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use PHPUnit\Framework\TestCase;
@@ -16,7 +17,7 @@ use Predis\Client;
  * Class RegistryOnlineUserCommandTest
  * @package App\Tests\Command\Console\DevMessenger
  */
-class RegistryOnlineUserCommandTest extends TestCase
+class RegistryOnlineUserHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -57,20 +58,20 @@ class RegistryOnlineUserCommandTest extends TestCase
             return false;
         }))->andReturn($client);
 
-        $registryOnlineUserCommand = new RegistryOnlineUserCommand($userRepository, $redisService);
-        $registryOnlineUserCommand->setConnId(2);
-        $registryOnlineUserCommand->setMessage(['userId' => 'userIdValue']);
+        $registryOnlineUserCommand = new RegistryOnlineUserCommand(['userId' => 'userIdValue'], 2);
 
-        $registryOnlineUserCommand->execute();
-        $result = $registryOnlineUserCommand->getResult();
+        $registryOnlineUserHandler = new RegistryOnlineUserHandler($userRepository, $redisService);
+
+        $registryOnlineUserHandler->handle($registryOnlineUserCommand);
+        $result = $registryOnlineUserHandler->getResult();
         $this->assertTrue($result);
 
-        $registryOnlineUserCommand->execute();
-        $result = $registryOnlineUserCommand->getResult();
+        $registryOnlineUserHandler->handle($registryOnlineUserCommand);
+        $result = $registryOnlineUserHandler->getResult();
         $this->assertFalse($result);
 
-        $registryOnlineUserCommand->execute();
-        $result = $registryOnlineUserCommand->getResult();
+        $registryOnlineUserHandler->handle($registryOnlineUserCommand);
+        $result = $registryOnlineUserHandler->getResult();
         $this->assertFalse($result);
     }
 
@@ -91,10 +92,11 @@ class RegistryOnlineUserCommandTest extends TestCase
         $userRepository->shouldReceive('getOneByPrivateWebToken')->once()->withArgs(['userIdValue'])
             ->andThrow(new UserNotFoundException());
 
-        $registryOnlineUserCommand = new RegistryOnlineUserCommand($userRepository, $redisService);
-        $registryOnlineUserCommand->setMessage(['userId' => 'userIdValue']);
-        $registryOnlineUserCommand->execute();
-        $result = $registryOnlineUserCommand->getResult();
+        $registryOnlineUserCommand = new RegistryOnlineUserCommand(['userId' => 'userIdValue'], 2);
+
+        $registryOnlineUserHandler = new RegistryOnlineUserHandler($userRepository, $redisService);
+        $registryOnlineUserHandler->handle($registryOnlineUserCommand);
+        $result = $registryOnlineUserHandler->getResult();
         $this->assertFalse($result);
     }
 }
