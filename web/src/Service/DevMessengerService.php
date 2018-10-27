@@ -38,26 +38,18 @@ class DevMessengerService implements MessageComponentInterface
     private $registryOnlineUserCommand;
 
     /**
-     * @var DeleteOnlineUserCommand
-     */
-    private $deleteOnlineUserCommand;
-
-    /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
      * @param RegistryOnlineUserCommand $registryOnlineUserCommand
-     * @param DeleteOnlineUserCommand $deleteOnlineUserCommand
      */
     public function __construct(
         CommandService $commandService,
-        RegistryOnlineUserCommand $registryOnlineUserCommand,
-        DeleteOnlineUserCommand $deleteOnlineUserCommand
+        RegistryOnlineUserCommand $registryOnlineUserCommand
     ) {
         $this->clients = new \SplObjectStorage();
 
         $this->registryOnlineUserCommand = $registryOnlineUserCommand;
         $this->commandService = $commandService;
-        $this->deleteOnlineUserCommand = $deleteOnlineUserCommand;
     }
 
     /**
@@ -165,9 +157,9 @@ class DevMessengerService implements MessageComponentInterface
         $this->clients->detach($conn);
         unset($this->users[(int) $conn->resourceId]);
 
-        $this->deleteOnlineUserCommand->setConnId((int) $conn->resourceId);
+        $deleteOnlineUserCommand = new DeleteOnlineUserCommand((int) $conn->resourceId);
 
-        $this->commandService->setCommand($this->deleteOnlineUserCommand);
+        $this->commandService->setCommand($deleteOnlineUserCommand);
         $this->commandService->execute();
     }
 
