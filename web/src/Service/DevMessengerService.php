@@ -33,11 +33,6 @@ class DevMessengerService implements MessageComponentInterface
     private $commandService;
 
     /**
-     * @var AddMessageCommand
-     */
-    private $addMessageCommand;
-
-    /**
      * @var CreateConversationCommand
      */
     private $createConversationCommand;
@@ -55,14 +50,12 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
-     * @param AddMessageCommand $addMessageCommand
      * @param CreateConversationCommand $createConversationCommand
      * @param RegistryOnlineUserCommand $registryOnlineUserCommand
      * @param DeleteOnlineUserCommand $deleteOnlineUserCommand
      */
     public function __construct(
         CommandService $commandService,
-        AddMessageCommand $addMessageCommand,
         CreateConversationCommand $createConversationCommand,
         RegistryOnlineUserCommand $registryOnlineUserCommand,
         DeleteOnlineUserCommand $deleteOnlineUserCommand
@@ -70,7 +63,6 @@ class DevMessengerService implements MessageComponentInterface
         $this->clients = new \SplObjectStorage();
 
         $this->registryOnlineUserCommand = $registryOnlineUserCommand;
-        $this->addMessageCommand = $addMessageCommand;
         $this->commandService = $commandService;
         $this->createConversationCommand = $createConversationCommand;
         $this->deleteOnlineUserCommand = $deleteOnlineUserCommand;
@@ -127,10 +119,9 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $this->addMessageCommand->setMessage($msg);
-                $this->addMessageCommand->setFromId($from->resourceId);
+                $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
 
-                $this->commandService->setCommand($this->addMessageCommand);
+                $this->commandService->setCommand($addMessageCommand);
                 $this->commandService->execute();
 
                 foreach ($this->commandService->getResult() as $userConnId) {
