@@ -31,14 +31,14 @@ class PostController extends Controller
 
     /**
      * @param Request $request
-     * @param CommandService $service
+     * @param CommandService $commandService
      * @return JsonResponse
      * @Route("/add-post", methods={"POST"}, name="addPost.post")
      * @IsGranted("ROLE_USER")
      */
     public function addPost(
         Request $request,
-        CommandService $service
+        CommandService $commandService
     ): JsonResponse {
         if (empty($user = $this->getUser())) {
             throw new UserNotFoundException('User not found!');
@@ -46,9 +46,7 @@ class PostController extends Controller
 
         if (!empty($content = $request->get('content'))) {
             $addPostToQueueCommand = new AddPostToQueueCommand($content, $user->getId());
-
-            $service->setCommand($addPostToQueueCommand);
-            $service->execute();
+            $commandService->handle($addPostToQueueCommand);
 
             return new JsonResponse(['success' => true]);
         }

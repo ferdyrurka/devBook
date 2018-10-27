@@ -45,8 +45,7 @@ class FriendsController extends Controller
         }
 
         $searchFriendsCommand = new SearchFriendsCommand($user->getId(), $phrase);
-        $commandService->setCommand($searchFriendsCommand);
-        $commandService->execute();
+        $commandService->handle($searchFriendsCommand);
 
         return new JsonResponse($commandService->getResult());
     }

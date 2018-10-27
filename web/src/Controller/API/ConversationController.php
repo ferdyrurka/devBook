@@ -31,8 +31,7 @@ class ConversationController extends Controller
         }
 
         $command = new GetConversationListCommand($user);
-        $commandService->setCommand($command);
-        $commandService->execute();
+        $commandService->handle($command);
 
         return new JsonResponse($commandService->getResult());
     }

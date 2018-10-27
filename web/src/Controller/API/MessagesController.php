@@ -36,8 +36,7 @@ class MessagesController extends Controller
         }
 
         $getMessageCommand = new GetMessageCommand($user->getId(), $conversationId, $offset);
-        $commandService->setCommand($getMessageCommand);
-        $commandService->execute();
+        $commandService->handle($getMessageCommand);
 
         return new JsonResponse([
             $commandService->getResult()

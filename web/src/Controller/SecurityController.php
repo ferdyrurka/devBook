@@ -36,7 +36,7 @@ class SecurityController extends Controller
             $command = new CreateUserCommand($this->getUser());
 
             $commandService = new CommandService();
-            $commandService->setCommand($command)->execute();
+            $commandService->handle($command);
 
             return $this->redirectToRoute('index.home');
         }

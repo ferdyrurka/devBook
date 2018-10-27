@@ -75,8 +75,7 @@ class DevMessengerService implements MessageComponentInterface
             case 'registry':
                 $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
 
-                $this->commandService->setCommand($registryOnlineUserCommand);
-                $this->commandService->execute();
+                $this->commandService->handle($registryOnlineUserCommand);
 
                 if ($this->commandService->getResult() === false) {
                     $this->onClose($from);
@@ -97,8 +96,7 @@ class DevMessengerService implements MessageComponentInterface
 
                 $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
 
-                $this->commandService->setCommand($addMessageCommand);
-                $this->commandService->execute();
+                $this->commandService->handle($addMessageCommand);
 
                 foreach ($this->commandService->getResult() as $userConnId) {
                     //Users is online
@@ -124,8 +122,7 @@ class DevMessengerService implements MessageComponentInterface
                     htmlspecialchars($msg['userId']),
                     htmlspecialchars($msg['receiveId'])
                 );
-                $this->commandService->setCommand($createConversationCommand);
-                $this->commandService->execute();
+                $this->commandService->handle($createConversationCommand);
 
                 $result = $this->commandService->getResult();
 
@@ -151,8 +148,7 @@ class DevMessengerService implements MessageComponentInterface
 
         $deleteOnlineUserCommand = new DeleteOnlineUserCommand((int) $conn->resourceId);
 
-        $this->commandService->setCommand($deleteOnlineUserCommand);
-        $this->commandService->execute();
+        $this->commandService->handle($deleteOnlineUserCommand);
     }
 
     /**
