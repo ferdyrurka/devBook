@@ -23,20 +23,17 @@ class DevMessengerServiceTest extends TestCase
 
     private $devMessengerService;
     private $commandService;
-    private $createConversationCommand;
     private $registryOnlineUserCommand;
     private $deleteOnlineUserCommand;
 
     public function setUp(): void
     {
         $this->commandService = Mockery::mock(CommandService::class);
-        $this->createConversationCommand = Mockery::mock(CreateConversationCommand::class);
         $this->registryOnlineUserCommand = Mockery::mock(RegistryOnlineUserCommand::class);
         $this->deleteOnlineUserCommand = Mockery::mock(DeleteOnlineUserCommand::class);
 
         $this->devMessengerService = new DevMessengerService(
             $this->commandService,
-            $this->createConversationCommand,
             $this->registryOnlineUserCommand,
             $this->deleteOnlineUserCommand
         );
@@ -164,10 +161,15 @@ class DevMessengerServiceTest extends TestCase
             return false;
         }));
 
-        $this->createConversationCommand->shouldReceive('setReceiveUserToken')->once()->withArgs(['receiveIdValue']);
-        $this->createConversationCommand->shouldReceive('setSendUserToken')->once()->withArgs(['userIdValue']);
+        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (CreateConversationCommand $createConversationCommand) {
+            if ($createConversationCommand->getReceiveUserToken() === 'receiveIdValue' &&
+                $createConversationCommand->getSendUserToken() === 'userIdValue'
+            ) {
+                return true;
+            }
 
-        $this->commandService->shouldReceive('setCommand')->withArgs([CreateConversationCommand::class])->once();
+            return false;
+        }))->once();
         $this->commandService->shouldReceive('execute')->once();
         $this->commandService->shouldReceive('getResult')->once()->andReturn([
             'result' => true,
