@@ -21,7 +21,6 @@ class FriendsController extends Controller
 {
     /**
      * @param CommandService $commandService
-     * @param SearchFriendsCommand $searchFriendsCommand
      * @param Request $request
      * @return JsonResponse
      * @throws InvalidException
@@ -30,7 +29,6 @@ class FriendsController extends Controller
      */
     public function searchFriendsAction(
         CommandService $commandService,
-        SearchFriendsCommand $searchFriendsCommand,
         Request $request
     ): JsonResponse {
         $phrase = $request->get('q');
@@ -46,9 +44,7 @@ class FriendsController extends Controller
             throw new UserNotFoundException('User not found!');
         }
 
-        $searchFriendsCommand->setPhrase($phrase);
-        $searchFriendsCommand->setUserId($user->getId());
-
+        $searchFriendsCommand = new SearchFriendsCommand($user->getId(), $phrase);
         $commandService->setCommand($searchFriendsCommand);
         $commandService->execute();
 
