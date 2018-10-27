@@ -1,11 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command\API;
+namespace App\Tests\Handler\API;
 
 use App\Command\API\SearchFriendsCommand;
 use App\Entity\User;
 use App\Entity\UserToken;
+use App\Handler\API\SearchFriendsHandler;
 use App\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -14,7 +15,7 @@ use \Mockery;
  * Class SearchFriendsCommandTest
  * @package App\Tests\Command\API
  */
-class SearchFriendsCommandTest extends TestCase
+class SearchFriendsHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -32,11 +33,11 @@ class SearchFriendsCommandTest extends TestCase
         $userRepository->shouldReceive('findByFirstNameOrSurname')
             ->withArgs(['&amp;&quot;&lt;&gt;', 1])->once()->andReturn([$user]);
 
-        $searchFriendsCommand = new SearchFriendsCommand($userRepository);
-        $searchFriendsCommand->setPhrase('&"<>');
-        $searchFriendsCommand->setUserId(1);
-        $searchFriendsCommand->execute();
-        $result = $searchFriendsCommand->getResult();
+        $searchFriendsCommand = new SearchFriendsCommand(1, '&"<>');
+
+        $searchFriendsHandler = new SearchFriendsHandler($userRepository);
+        $searchFriendsHandler->handle($searchFriendsCommand);
+        $result = $searchFriendsHandler->getResult();
 
         $this->assertEquals('FirstName Surname', $result[0]['fullName']);
         $this->assertEquals('public_token', $result[0]['userId']);
