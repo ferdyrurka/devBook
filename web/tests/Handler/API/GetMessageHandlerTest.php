@@ -6,6 +6,7 @@ namespace App\Tests\Handler\API;
 use App\Command\API\GetMessageCommand;
 use App\Entity\Message;
 use App\Exception\InvalidException;
+use App\Handler\API\GetMessageHandler;
 use App\Repository\MessageRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -14,12 +15,12 @@ use \Mockery;
  * Class GetMessageCommandTest
  * @package App\Tests\Command\API
  */
-class GetMessageCommandTest extends TestCase
+class GetMessageHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     /**
-     * @throws \App\Exception\InvalidException
+     * @throws InvalidException
      */
     public function testExecute(): void
     {
@@ -41,13 +42,12 @@ class GetMessageCommandTest extends TestCase
             ])
             ->andReturn([1 => $messageReceive, 2 => $messageSend]);
 
-        $getMessageCommand = new GetMessageCommand($messageRepository);
-        $getMessageCommand->setConversationId('8fdc55bd-6db4-46dd-8616-8dc786fe3eb0');
-        $getMessageCommand->setUserId(1);
-        $getMessageCommand->setOffset(15);
-        $getMessageCommand->execute();
+        $getMessageCommand = new GetMessageCommand(1, '8fdc55bd-6db4-46dd-8616-8dc786fe3eb0', 15);
 
-        $result = $getMessageCommand->getResult();
+        $getMessageHandler = new GetMessageHandler($messageRepository);
+        $getMessageHandler->handle($getMessageCommand);
+
+        $result = $getMessageHandler->getResult();
         $this->assertEquals('Message receive', $result[0]['message']);
         $this->assertEquals('Message send', $result[1]['message']);
 
@@ -62,10 +62,11 @@ class GetMessageCommandTest extends TestCase
     {
         $messageRepository = Mockery::mock(MessageRepository::class);
 
-        $getMessageCommand = new GetMessageCommand($messageRepository);
-        $getMessageCommand->setConversationId('FAILED');
+        $getMessageHandler = new GetMessageHandler($messageRepository);
+
+        $getMessageCommand = new GetMessageCommand(1, 'FAILED', 0);
 
         $this->expectException(InvalidException::class);
-        $getMessageCommand->execute();
+        $getMessageHandler->handle($getMessageCommand);
     }
 }
