@@ -23,17 +23,12 @@ class DevMessengerServiceTest extends TestCase
 
     private $devMessengerService;
     private $commandService;
-    private $registryOnlineUserCommand;
 
     public function setUp(): void
     {
         $this->commandService = Mockery::mock(CommandService::class);
-        $this->registryOnlineUserCommand = Mockery::mock(RegistryOnlineUserCommand::class);
 
-        $this->devMessengerService = new DevMessengerService(
-            $this->commandService,
-            $this->registryOnlineUserCommand
-        );
+        $this->devMessengerService = new DevMessengerService($this->commandService);
 
         parent::setUp();
     }
@@ -43,17 +38,10 @@ class DevMessengerServiceTest extends TestCase
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
-        $this->registryOnlineUserCommand->shouldReceive('setConnId')->times(2)->withArgs([1]);
-        $this->registryOnlineUserCommand->shouldReceive('setMessage')->with(Mockery::on(function (array $msg) {
-            if (array_key_exists('userId', $msg)) {
-                return true;
-            }
-
-            return false;
-        }))->times(2);
-
         $this->commandService->shouldReceive('setCommand')->times(3)->with(Mockery::on(function ($class) {
-            if ($class instanceof RegistryOnlineUserCommand || $class instanceof DeleteOnlineUserCommand) {
+            if (($class instanceof RegistryOnlineUserCommand && array_key_exists('userId', $class->getMessage()) && $class->getConnId() === 1) ||
+                $class instanceof DeleteOnlineUserCommand
+            ) {
                 return true;
             }
 
