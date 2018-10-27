@@ -23,7 +23,6 @@ class DevMessengerServiceTest extends TestCase
 
     private $devMessengerService;
     private $commandService;
-    private $addMessageCommand;
     private $createConversationCommand;
     private $registryOnlineUserCommand;
     private $deleteOnlineUserCommand;
@@ -31,14 +30,12 @@ class DevMessengerServiceTest extends TestCase
     public function setUp(): void
     {
         $this->commandService = Mockery::mock(CommandService::class);
-        $this->addMessageCommand = Mockery::mock(AddMessageCommand::class);
         $this->createConversationCommand = Mockery::mock(CreateConversationCommand::class);
         $this->registryOnlineUserCommand = Mockery::mock(RegistryOnlineUserCommand::class);
         $this->deleteOnlineUserCommand = Mockery::mock(DeleteOnlineUserCommand::class);
 
         $this->devMessengerService = new DevMessengerService(
             $this->commandService,
-            $this->addMessageCommand,
             $this->createConversationCommand,
             $this->registryOnlineUserCommand,
             $this->deleteOnlineUserCommand
@@ -114,16 +111,13 @@ class DevMessengerServiceTest extends TestCase
 
         //Send message
 
-        $this->addMessageCommand->shouldReceive('setMessage')->with(Mockery::on(function ($array) {
-            if (array_key_exists('conversationId', $array) && array_key_exists('message', $array)) {
+        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (AddMessageCommand $addMessageCommand) {
+            $array = $addMessageCommand->getMessage();
+            if ((array_key_exists('conversationId', $array) && array_key_exists('message', $array)) && $addMessageCommand->getFromId() === 1) {
                 return true;
             }
-
-            return false;
+            return true;
         }))->once();
-        $this->addMessageCommand->shouldReceive('setFromId')->withArgs([1])->once();
-
-        $this->commandService->shouldReceive('setCommand')->withArgs([AddMessageCommand::class])->once();
         $this->commandService->shouldReceive('execute')->once();
         $this->commandService->shouldReceive('getResult')->once()->andReturn([1]);
 
