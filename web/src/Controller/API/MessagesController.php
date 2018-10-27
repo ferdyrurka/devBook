@@ -18,7 +18,6 @@ use Symfony\Component\Routing\Annotation\Route;
 class MessagesController extends Controller
 {
     /**
-     * @param GetMessageCommand $getMessageCommand
      * @param CommandService $commandService
      * @param string $conversationId
      * @param int $offset
@@ -28,7 +27,6 @@ class MessagesController extends Controller
      * @IsGranted("ROLE_USER")
      */
     public function getMessagesAction(
-        GetMessageCommand $getMessageCommand,
         CommandService $commandService,
         string $conversationId,
         int $offset = 0
@@ -37,10 +35,7 @@ class MessagesController extends Controller
             throw new UserNotFoundException('User not found!');
         }
 
-        $getMessageCommand->setConversationId($conversationId);
-        $getMessageCommand->setUserId($user->getId());
-        $getMessageCommand->setOffset($offset);
-
+        $getMessageCommand = new GetMessageCommand($user->getId(), $conversationId, $offset);
         $commandService->setCommand($getMessageCommand);
         $commandService->execute();
 
