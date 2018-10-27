@@ -32,7 +32,6 @@ class PostController extends Controller
     /**
      * @param Request $request
      * @param CommandService $service
-     * @param AddPostToQueueCommand $addPostToQueueCommand
      * @return JsonResponse
      * @Route("/add-post", methods={"POST"}, name="addPost.post")
      * @IsGranted("ROLE_USER")
