@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command\Console\DevMessenger;
+namespace App\Tests\Handler\Console\DevMessenger;
 
 use App\Command\Console\DevMessenger\AddMessageCommand;
 use App\Entity\Conversation;
