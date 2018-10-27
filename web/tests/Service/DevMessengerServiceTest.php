@@ -24,18 +24,15 @@ class DevMessengerServiceTest extends TestCase
     private $devMessengerService;
     private $commandService;
     private $registryOnlineUserCommand;
-    private $deleteOnlineUserCommand;
 
     public function setUp(): void
     {
         $this->commandService = Mockery::mock(CommandService::class);
         $this->registryOnlineUserCommand = Mockery::mock(RegistryOnlineUserCommand::class);
-        $this->deleteOnlineUserCommand = Mockery::mock(DeleteOnlineUserCommand::class);
 
         $this->devMessengerService = new DevMessengerService(
             $this->commandService,
-            $this->registryOnlineUserCommand,
-            $this->deleteOnlineUserCommand
+            $this->registryOnlineUserCommand
         );
 
         parent::setUp();
@@ -43,10 +40,6 @@ class DevMessengerServiceTest extends TestCase
 
     public function testOnMessageRegistry(): void
     {
-        #Delete user online
-
-        $this->deleteOnlineUserCommand->shouldReceive('setConnId')->withArgs([1]);
-
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
@@ -196,9 +189,13 @@ class DevMessengerServiceTest extends TestCase
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
-        $this->deleteOnlineUserCommand->shouldReceive('setConnId')->once()->withArgs([1]);
+        $this->commandService->shouldReceive('setCommand')->with(Mockery::on(function (DeleteOnlineUserCommand $deleteOnlineUserCommand) {
+            if ($deleteOnlineUserCommand->getConnId() === 1) {
+                return true;
+            }
 
-        $this->commandService->shouldReceive('setCommand')->withArgs([DeleteOnlineUserCommand::class])->once();
+            return false;
+        }))->once();
         $this->commandService->shouldReceive('execute')->once();
 
         $this->devMessengerService->onClose($conn);
