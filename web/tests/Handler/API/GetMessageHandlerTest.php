@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Command\API;
+namespace App\Tests\Handler\API;
 
 use App\Command\API\GetMessageCommand;
 use App\Entity\Message;
