@@ -33,22 +33,15 @@ class DevMessengerService implements MessageComponentInterface
     private $commandService;
 
     /**
-     * @var RegistryOnlineUserCommand
-     */
-    private $registryOnlineUserCommand;
-
-    /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
      * @param RegistryOnlineUserCommand $registryOnlineUserCommand
      */
     public function __construct(
-        CommandService $commandService,
-        RegistryOnlineUserCommand $registryOnlineUserCommand
+        CommandService $commandService
     ) {
         $this->clients = new \SplObjectStorage();
 
-        $this->registryOnlineUserCommand = $registryOnlineUserCommand;
         $this->commandService = $commandService;
     }
 
@@ -80,10 +73,9 @@ class DevMessengerService implements MessageComponentInterface
              * Register in array Users
              */
             case 'registry':
-                $this->registryOnlineUserCommand->setConnId($from->resourceId);
-                $this->registryOnlineUserCommand->setMessage($msg);
+                $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
 
-                $this->commandService->setCommand($this->registryOnlineUserCommand);
+                $this->commandService->setCommand($registryOnlineUserCommand);
                 $this->commandService->execute();
 
                 if ($this->commandService->getResult() === false) {
