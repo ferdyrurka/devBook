@@ -11,6 +11,7 @@ use App\Entity\UserToken;
 use App\Exception\NotAuthorizationUUIDException;
 use App\Exception\UserNotFoundException;
 use App\Exception\UserNotFoundInConversationException;
+use App\Handler\Console\DevMessenger\AddMessageHandler;
 use App\Repository\ConversationRepository;
 use App\Service\RedisService;
 use Doctrine\Common\Collections\Collection;
@@ -23,7 +24,7 @@ use Predis\Client;
  * Class AddMessageCommandTest
  * @package App\Tests\Command\Console\DevMessenger
  */
-class AddMessageCommandTest extends TestCase
+class AddMessageHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -126,16 +127,16 @@ class AddMessageCommandTest extends TestCase
             'message' => 'messageValue'
         ];
 
-        $addMessage = new AddMessageCommand($entityManager, $conversationRepository, $redis);
-        $addMessage->setMessage($message);
-        $addMessage->setFromId(2);
-        $this->assertNull($addMessage->execute());
+        $addMessageCommand = new AddMessageCommand($message, 2);
+
+        $addMessage = new AddMessageHandler($entityManager, $conversationRepository, $redis);
+        $addMessage->handle($addMessageCommand);
 
         $result = $addMessage->getResult();
         //Because return a in query json_encode(['connId' => 3]),
         $this->assertEquals(3, $result[0]);
 
-        $addMessage->execute();
+        $addMessage->handle($addMessageCommand);
 
         $result = $addMessage->getResult();
         //Because return a in query json_encode(['connId' => 4]),
@@ -162,12 +163,11 @@ class AddMessageCommandTest extends TestCase
         $entityManager = Mockery::mock(EntityManagerInterface::class);
         $conversationRepository = Mockery::mock(ConversationRepository::class);
 
-        $addMessage = new AddMessageCommand($entityManager, $conversationRepository, $redis);
-        $addMessage->setFromId(1);
-        $addMessage->setMessage([]);
+        $addMessageCommand = new AddMessageCommand([], 1);
+        $addMessage = new AddMessageHandler($entityManager, $conversationRepository, $redis);
 
         $this->expectException(UserNotFoundException::class);
-        $addMessage->execute();
+        $addMessage->handle($addMessageCommand);
     }
 
     /**
@@ -189,12 +189,11 @@ class AddMessageCommandTest extends TestCase
         $entityManager = Mockery::mock(EntityManagerInterface::class);
         $conversationRepository = Mockery::mock(ConversationRepository::class);
 
-        $addMessage = new AddMessageCommand($entityManager, $conversationRepository, $redis);
-        $addMessage->setFromId(1);
-        $addMessage->setMessage(['userId' => 'failedToken']);
+        $addMessageCommand = new AddMessageCommand(['userId' => 'failedToken'], 1);
+        $addMessage = new AddMessageHandler($entityManager, $conversationRepository, $redis);
 
         $this->expectException(NotAuthorizationUUIDException::class);
-        $addMessage->execute();
+        $addMessage->handle($addMessageCommand);
     }
 
     /**
@@ -234,14 +233,13 @@ class AddMessageCommandTest extends TestCase
 
         #Execute
 
-        $addMessage = new AddMessageCommand($entityManager, $conversationRepository, $redis);
-        $addMessage->setFromId(1);
-        $addMessage->setMessage([
+        $addMessageCommand = new AddMessageCommand([
             'conversationId' => 'conversationIdValue',
             'userId' => 'privateToken'
-        ]);
+        ], 1);
+        $addMessage = new AddMessageHandler($entityManager, $conversationRepository, $redis);
 
         $this->expectException(UserNotFoundInConversationException::class);
-        $addMessage->execute();
+        $addMessage->handle($addMessageCommand);
     }
 }
