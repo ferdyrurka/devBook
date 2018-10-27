@@ -59,24 +59,26 @@ class PostControllerTest extends WebTestCase
         //There because one successful second empty content and last not authoryzation user
         $postController->shouldReceive('getUser')->times(3)->andReturn($user, $user, null);
 
-        $addPostToQueueCommand = Mockery::mock(AddPostToQueueCommand::class);
-        $addPostToQueueCommand->shouldReceive('setUserId')->withArgs([1])->once();
-        $addPostToQueueCommand->shouldReceive('setContent')->withArgs(['contentValue'])->once();
-
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('get')->withArgs(['content'])->andReturn('contentValue', null)->times(2);
 
         $commandService = Mockery::mock(CommandService::class);
-        $commandService->shouldReceive('setCommand')->withArgs([AddPostToQueueCommand::class])->once();
+        $commandService->shouldReceive('setCommand')->with(Mockery::on(function (AddPostToQueueCommand $addPostToQueueCommand) {
+            if ($addPostToQueueCommand->getContent() === 'contentValue' && $addPostToQueueCommand->getUserId() === 1) {
+                return true;
+            }
+
+            return false;
+        }))->once();
         $commandService->shouldReceive('execute')->once();
 
-        $result = $postController->addPost($request, $commandService, $addPostToQueueCommand);
+        $result = $postController->addPost($request, $commandService);
         $this->assertInstanceOf(JsonResponse::class, $result);
 
-        $result = $postController->addPost($request, $commandService, $addPostToQueueCommand);
+        $result = $postController->addPost($request, $commandService);
         $this->assertInstanceOf(JsonResponse::class, $result);
 
         $this->expectException(UserNotFoundException::class);
-        $postController->addPost($request, $commandService, $addPostToQueueCommand);
+        $postController->addPost($request, $commandService);
     }
 }
