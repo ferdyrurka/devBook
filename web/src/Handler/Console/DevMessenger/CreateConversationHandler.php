@@ -6,11 +6,13 @@ namespace App\Handler\Console\DevMessenger;
 use App\Command\CommandInterface;
 use App\Entity\Conversation;
 use App\Exception\InvalidException;
+use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
 use Predis\Client;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class CreateConversation
@@ -40,18 +42,25 @@ class CreateConversationHandler implements HandlerInterface
     private $result;
 
     /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    /**
      * CreateConversationCommand constructor.
      * @param EntityManagerInterface $entityManager
      * @param UserRepository $userRepository
      * @param RedisService $redis
+     * @param $validator
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         UserRepository $userRepository,
-        RedisService $redis
+        RedisService $redis,
+        ValidatorInterface $validator
     ) {
         $this->redis = $redis;
-
+        $this->validator = $validator;
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
     }
@@ -96,6 +105,12 @@ class CreateConversationHandler implements HandlerInterface
             ->addConversation($sendUser)
             ->addConversation($receiveUser)
         ;
+
+        if (\count($this->validator->validate($conversation)) > 0) {
+            throw new ValidateEntityUnsuccessfulException(
+                'Failed validation entity Conversation in: ' . \get_class($this)
+            );
+        }
 
         $this->entityManager->persist($conversation);
         $this->entityManager->flush();
