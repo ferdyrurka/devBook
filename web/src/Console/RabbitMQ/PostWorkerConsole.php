@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Console\RabbitMQ;
 
 use App\Console\RabbitMQ\Command\AddPostCommand;
+use App\Console\RabbitMQ\Handler\AddPostHandler;
 use App\Service\RabbitMQConnectService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,9 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class PostWorkerConsole extends Command
 {
     /**
-     * @var AddPostCommand
+     * @var AddPostHandler
      */
-    private $addPostCommand;
+    private $addPostHandler;
 
     /**
      * @var RabbitMQConnectService
@@ -27,12 +28,12 @@ class PostWorkerConsole extends Command
 
     /**
      * PostWorkerConsole constructor.
-     * @param AddPostCommand $addPostCommand
+     * @param AddPostHandler $addPostHandler
      * @param RabbitMQConnectService $rabbitMQConnect
      */
-    public function __construct(AddPostCommand $addPostCommand, RabbitMQConnectService $rabbitMQConnect)
+    public function __construct(AddPostHandler $addPostHandler, RabbitMQConnectService $rabbitMQConnect)
     {
-        $this->addPostCommand = $addPostCommand;
+        $this->addPostHandler = $addPostHandler;
         $this->rabbitMQConnect = $rabbitMQConnect;
 
         parent::__construct();
@@ -62,7 +63,7 @@ class PostWorkerConsole extends Command
             true,
             false,
             false,
-            [$this->addPostCommand, 'execute']
+            [$this->addPostHandler, 'handle']
         );
 
         $output->writeln('I\'m ready to working!');
