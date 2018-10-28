@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Event;
 
 use App\Entity\UserToken;
+use App\Exception\ValidateEntityUnsuccessfulException;
 use Doctrine\ORM\EntityManagerInterface;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Security;
 use \DateTimeZone;
 use \DateTime;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class RefreshTokenEventListener
@@ -27,14 +30,20 @@ class RefreshTokenEventListener implements EventSubscriberInterface
      */
     private $entityManager;
 
-    public function __construct(Security $security, EntityManagerInterface $entityManager)
+    /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    public function __construct(Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator)
     {
         $this->entityManager = $entityManager;
         $this->security = $security;
+        $this->validator = $validator;
     }
 
     /**
-     * @throws \Exception
+     * @throws ValidateEntityUnsuccessfulException
      */
     public function onKernelController(): void
     {
@@ -77,8 +86,15 @@ class RefreshTokenEventListener implements EventSubscriberInterface
         }
     }
 
+    /**
+     * @param UserToken $userToken
+     * @throws ValidateEntityUnsuccessfulException
+     */
     private function saveUserToken(UserToken $userToken) :void
     {
+        if (\count($this->validator->validate($userToken)) > 0) {
+            throw new ValidateEntityUnsuccessfulException('Entity UserToken is failed in: ' . \get_class($this));
+        }
         $this->entityManager->persist($userToken);
         $this->entityManager->flush();
     }
