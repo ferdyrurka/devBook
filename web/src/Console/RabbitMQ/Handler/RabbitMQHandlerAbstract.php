@@ -9,7 +9,7 @@ use PhpAmqpLib\Message\AMQPMessage;
  * Class RabbitMQCommandAbstract
  * @package App\Console\Command\RabbitMQ
  */
-abstract class RabbitMQCommandAbstract
+abstract class RabbitMQHandlerAbstract
 {
     /**
      * @param AMQPMessage $jsonMessage
