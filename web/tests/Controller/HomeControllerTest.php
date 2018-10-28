@@ -59,8 +59,6 @@ class HomeControllerTest extends WebTestCase
         $em = self::bootKernel();
         $em = $em->getContainer()->get('doctrine')->getManager();
 
-
-
         $this->assertNotNull(
             $user = $em->getRepository(User::class)->findOneBy(['username' => 'admin@lukaszstaniszewski.pl'])
         );
