@@ -58,7 +58,6 @@ class FriendsControllerTest extends WebTestCase
         $this->expectException(UserNotFoundException::class);
         $friendsController->searchFriendsAction(
             Mockery::mock(CommandService::class),
-            Mockery::mock(SearchFriendsCommand::class),
             $request
         );
     }
