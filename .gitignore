@@ -1,3 +1,5 @@
 .idea
 web/var/
 web/vendor/
+web/composer.lock
+web/symfony.lock
