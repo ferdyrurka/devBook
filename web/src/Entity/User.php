@@ -128,6 +128,12 @@ class User implements UserInterface, \Serializable
     private $conversationReferences;
 
     /**
+     * @var Collection
+     * @ORM\ManyToMany(targetEntity="Notification", mappedBy="userReferences")
+     */
+    private $notificationReferences;
+
+    /**
      * @return int
      */
     public function getId() :int
@@ -333,6 +339,14 @@ class User implements UserInterface, \Serializable
     public function getConversationReferences(): Collection
     {
         return $this->conversationReferences;
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getNotificationReferences(): Collection
+    {
+        return $this->notificationReferences;
     }
 
     /**
