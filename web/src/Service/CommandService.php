@@ -4,6 +4,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Command\CommandInterface;
+use App\Exception\GetResultUndefinedException;
+use App\Exception\LackHandlerToCommandException;
+use App\Handler\HandlerInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Class CommandService
@@ -12,37 +16,57 @@ use App\Command\CommandInterface;
 class CommandService
 {
     /**
-     * @var CommandInterface
+     * @var ContainerInterface
      */
-    private $command;
+    private $container;
 
     /**
-     * @param string $name
-     * @param array $arguments
-     * @return mixed
+     * @var HandlerInterface
      */
-    public function __call(string $name, array $arguments)
+    private $handler;
+
+    public function __construct(ContainerInterface $container)
     {
-        if (method_exists($this->command, $name)) {
-            return $this->command->$name();
+        $this->container = $container;
+    }
+
+    /**
+     * @param string $commandClass
+     * @return HandlerInterface
+     * @throws LackHandlerToCommandException
+     */
+    private function getHandler(string $commandClass): HandlerInterface
+    {
+        $handlerClass = str_replace('Command', 'Handler', $commandClass);
+
+        if (!\class_exists($commandClass)) {
+            throw new LackHandlerToCommandException('Not found Handler from command: ' . $commandClass);
         }
 
-        return null;
+        return $this->container->get($handlerClass);
     }
 
     /**
      * @param CommandInterface $command
-     * @return self
+     * @throws LackHandlerToCommandException
      */
-    public function setCommand(CommandInterface $command): self
+    public function handle(CommandInterface $command): void
     {
-        $this->command = $command;
+        $this->handler = $this->getHandler(\get_class($command));
 
-        return $this;
+        $this->handler->handle($command);
     }
 
-    public function execute(): void
+    /**
+     * @return mixed
+     * @throws GetResultUndefinedException
+     */
+    public function getResult()
     {
-        $this->command->execute();
+        if (!\method_exists($this->handler, 'getResult')) {
+            throw new GetResultUndefinedException('Undefined method getResult in handler: ' . \get_class($this->handler));
+        }
+
+        return $this->handler->getResult();
     }
 }
