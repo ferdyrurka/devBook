@@ -5,6 +5,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class UserToken
@@ -25,36 +26,48 @@ class UserToken
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=128)
+     * @Assert\DateTime()
      */
     private $refreshPublicToken;
 
     /**
      * @var string
      * @ORM\Column(type="string", length=36, unique=true)
+     * @Assert\Regex(
+     *     pattern="/^([a-z|A-Z|0-9|-]){36,36}$/"
+     * )
      */
     private $publicToken;
 
     /**
      * @var string
      * @ORM\Column(type="string", length=36, unique=true)
+     * @Assert\Regex(
+     *     pattern="/^([a-z|A-Z|0-9|-]){36,36}$/"
+     * )
      */
     private $privateWebToken;
 
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=128)
+     * @Assert\DateTime()
      */
     private $refreshWebToken;
 
     /**
      * @var string
      * @ORM\Column(type="string", length=36, unique=true)
+     * @Assert\Regex(
+     *     pattern="/^([a-z|A-Z|0-9|-]){36,36}$/"
+     * )
      */
     private $privateMobileToken;
 
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=128)
+     * @Assert\DateTime()
      */
     private $refreshMobileToken;
 

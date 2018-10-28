@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Message
@@ -25,6 +26,9 @@ class Message
     /**
      * @var string
      * @ORM\Column(type="string", length=128, name="conversation_id")
+     * @Assert\Regex(
+     *     pattern="/^([a-z|A-Z|0-9|-]){36,36}$/"
+     * )
      */
     private $conversationId;
 
@@ -43,6 +47,7 @@ class Message
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime")
+     * @Assert\DateTime()
      */
     private $sendTime;
 

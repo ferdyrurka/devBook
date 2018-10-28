@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * Class Post
@@ -24,18 +25,23 @@ class Post
     /**
      * @var string
      * @ORM\Column(type="string", length=16000)
+     * @Assert\Regex(
+     *     pattern="/^([A-ZĄĆĘŁŃÓŚŹŻ|a-ząćęłnóśźż|0-9| |,|.|-]){1,255}$/"
+     * )
      */
     private $content;
 
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=20)
+     * @Assert\DateTime()
      */
     private $updatedAt;
 
     /**
      * @var \DateTime
      * @ORM\Column(type="datetime", length=20)
+     * @Assert\DateTime()
      */
     private $createdAt;
 
