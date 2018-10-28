@@ -10,10 +10,12 @@ use App\Exception\ConversationNotExistException;
 use App\Exception\NotAuthorizationUUIDException;
 use App\Exception\UserNotFoundException;
 use App\Exception\UserNotFoundInConversationException;
+use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
 use App\Repository\ConversationRepository;
 use App\Service\RedisService;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class AddMessageCommand
@@ -43,19 +45,27 @@ class AddMessageHandler implements HandlerInterface
     private $result;
 
     /**
+     * @var ValidatorInterface
+     */
+    private $validator;
+
+    /**
      * AddMessageCommand constructor.
      * @param EntityManagerInterface $entityManager
      * @param ConversationRepository $conversationRepository
      * @param RedisService $redisService
+     * @param ValidatorInterface $validator
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         ConversationRepository $conversationRepository,
-        RedisService $redisService
+        RedisService $redisService,
+        ValidatorInterface $validator
     ) {
         $this->redisService = $redisService;
         $this->conversationRepository = $conversationRepository;
         $this->entityManager = $entityManager;
+        $this->validator = $validator;
     }
 
     /**
@@ -176,6 +186,7 @@ class AddMessageHandler implements HandlerInterface
      * @throws ConversationNotExistException
      * @throws NotAuthorizationUUIDException
      * @throws UserNotFoundInConversationException
+     * @throws ValidateEntityUnsuccessfulException
      */
     public function handle(CommandInterface $addMessageCommand): void
     {
@@ -244,6 +255,10 @@ class AddMessageHandler implements HandlerInterface
         $time = new \DateTime('now');
         $time->setTimezone(new \DateTimeZone('Europe/Warsaw'));
         $messageEntity->setSendTime($time);
+
+        if (\count($this->validator->validate($messageEntity)) > 0) {
+            throw new ValidateEntityUnsuccessfulException('Failed validation entity Message in: ' . \get_class($this));
+        }
 
         $this->entityManager->persist($messageEntity);
         $this->entityManager->flush();
