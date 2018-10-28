@@ -8,6 +8,7 @@ use App\Entity\Conversation;
 use App\Entity\User;
 use App\Entity\UserToken;
 use App\Exception\InvalidException;
+use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\Console\DevMessenger\CreateConversationHandler;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
@@ -15,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Predis\Client;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class CreateConversationCommandTest
@@ -67,15 +69,19 @@ class CreateConversationHandlerTest extends TestCase
 
         $userRepository = Mockery::mock(UserRepository::class);
         $userRepository->shouldReceive('getOneByPublicToken')->withArgs(['receive_user_token'])
-            ->once()->andReturn($userReceive);
+            ->times(2)->andReturn($userReceive);
         $userRepository->shouldReceive('getOneByPrivateWebToken')->withArgs(['send_user_token'])
-            ->once()->andReturn($userSend);
-        $userRepository->shouldReceive('getCountConversationByUsersId')->once()->withArgs([1, 2])->andReturn(0, 1);
+            ->times(2)->andReturn($userSend);
+        $userRepository->shouldReceive('getCountConversationByUsersId')->times(2)->withArgs([1, 2])->andReturn(0, 0);
+
+        $validator = Mockery::mock(ValidatorInterface::class);
+        $validator->shouldReceive('validate')->withArgs([Conversation::class])->andReturn([], ['failed'])->times(2);
 
         $createConversationHandler = new CreateConversationHandler(
             $entityManager,
             $userRepository,
-            $redisService
+            $redisService,
+            $validator
         );
 
         $createConversationCommand = new CreateConversationCommand('send_user_token', 'receive_user_token');
@@ -87,6 +93,9 @@ class CreateConversationHandlerTest extends TestCase
         $this->assertNotNull($result['conversationId']);
         $this->assertTrue($result['result']);
         $this->assertEquals('FirstName Surname', $result['fullName']);
+
+        $this->expectException(ValidateEntityUnsuccessfulException::class);
+        $createConversationHandler->handle($createConversationCommand);
     }
 
     /**
@@ -100,10 +109,13 @@ class CreateConversationHandlerTest extends TestCase
         $client = Mockery::mock(Client::class);
         $redisService->shouldReceive('setDatabase')->withArgs([2])->andReturn($client);
 
+        $validator = Mockery::mock(ValidatorInterface::class);
+
         $createConversationHandler = new CreateConversationHandler(
             $entityManager,
             $userRepository,
-            $redisService
+            $redisService,
+            $validator
         );
 
         $createConversationCommand = new CreateConversationCommand('send_user_token', 'send_user_token');
