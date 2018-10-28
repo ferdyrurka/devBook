@@ -23,6 +23,7 @@ class RefreshTokenEventListenerTest extends TestCase
 
     /**
      * @throws \Exception
+     * @runInSeparateProcess
      */
     public function testOnKernelController(): void
     {
@@ -67,7 +68,7 @@ class RefreshTokenEventListenerTest extends TestCase
         $user = Mockery::mock(User::class);
         $user->shouldReceive('getUserTokenReferences')->andReturn($userToken)->times(4);
 
-        $security = Mockery::mock('alias:'.Security::class)->makePartial();
+        $security = Mockery::mock('overload:'.Security::class)->makePartial();
         $security->shouldReceive('getUser')->andReturn($user, $user, $user, $user, null)->times(5);
 
         $refreshToken = new RefreshTokenEventListener($security, $entityManager);
