@@ -5,9 +5,16 @@ namespace App\Tests\Service;
 
 use App\Command\API\GetMessageCommand;
 use App\Command\CommandInterface;
+use App\Command\CreateUserCommand;
+use App\Entity\User;
+use App\Exception\GetResultUndefinedException;
+use App\Handler\API\GetMessageHandler;
+use App\Handler\CreateUserHandler;
+use App\Repository\MessageRepository;
 use App\Service\CommandService;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
+use Psr\Container\ContainerInterface;
 
 /**
  * Class CommandServiceTest
@@ -20,27 +27,54 @@ class CommandServiceTest extends TestCase
 
     public function setUp(): void
     {
-        $this->commandService = new CommandService();
         parent::setUp();
     }
 
-    public function testExecute(): void
+    public function testHandle(): void
     {
-        $command = Mockery::mock(CommandInterface::class);
-        $command->shouldReceive('execute')->once();
+        $getMessageHandler = Mockery::mock(GetMessageHandler::class);
+        $getMessageHandler->shouldReceive('handle')->once();
 
-        $this->assertInstanceOf(CommandService::class, $this->commandService->setCommand($command));
-        $this->assertNull($this->commandService->execute());
+        $container = Mockery::mock(ContainerInterface::class);
+        $container->shouldReceive('get')->withArgs(['App\Handler\API\GetMessageHandler'])->andReturn($getMessageHandler);
+
+        $command = new GetMessageCommand(1, 'conversationId', 1);
+
+        $commandService = new CommandService($container);
+        $commandService->handle($command);
     }
 
     public function testGetResult(): void
     {
-        $command = Mockery::mock(GetMessageCommand::class);
-        $command->shouldReceive('getResult')->once()->andReturn([0 => 'Result']);
+        $getMessageHandler = Mockery::mock(GetMessageHandler::class);
+        $getMessageHandler->shouldReceive('handle')->once();
+        $getMessageHandler->shouldReceive('getResult')->once()->andReturn([0 => true]);
 
-        $this->assertInstanceOf(CommandService::class, $this->commandService->setCommand($command));
-        $result = $this->commandService->getResult();
-        $this->assertNotEmpty($result);
-        $this->assertEquals('Result', $result[0]);
+        $container = Mockery::mock(ContainerInterface::class);
+        $container->shouldReceive('get')->withArgs(['App\Handler\API\GetMessageHandler'])->andReturn($getMessageHandler);
+
+        $command = new GetMessageCommand(1, 'conversationId', 1);
+
+        $commandService = new CommandService($container);
+        $commandService->handle($command);
+        $this->assertTrue($commandService->getResult()[0]);
+    }
+
+    public function testUndefinedGetResult(): void
+    {
+        $createUserHandler = Mockery::mock(CreateUserHandler::class);
+        $createUserHandler->shouldReceive('handle')->once();
+
+        $container = Mockery::mock(ContainerInterface::class);
+        $container->shouldReceive('get')->withArgs(['App\Handler\CreateUserHandler'])->andReturn($createUserHandler);
+
+        $user = Mockery::mock(User::class);
+        $command = new CreateUserCommand($user);
+
+        $commandService = new CommandService($container);
+        $commandService->handle($command);
+
+        $this->expectException(GetResultUndefinedException::class);
+        $commandService->getResult();
     }
 }
