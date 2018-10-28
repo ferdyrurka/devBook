@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Service;
 
@@ -33,7 +34,7 @@ class RabbitMQConnectService
     /**
      * @param AMQPChannel $channel
      */
-    public function close(AMQPChannel $channel)
+    public function close(AMQPChannel $channel): void
     {
         $channel->close();
         $this->connection->close();
