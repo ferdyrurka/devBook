@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  * Class AddPostCommand
  * @package App\Command\Console
  */
-class AddPostCommand extends RabbitMQHandlerAbstract
+class AddPostHandler extends RabbitMQHandlerAbstract
 {
     /**
      * @var EntityManagerInterface
