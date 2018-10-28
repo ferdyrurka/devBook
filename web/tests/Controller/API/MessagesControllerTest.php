@@ -53,7 +53,6 @@ class MessagesControllerTest extends WebTestCase
 
         $this->expectException(UserNotFoundException::class);
         $messagesController->getMessagesAction(
-            Mockery::mock(GetMessageCommand::class),
             Mockery::mock(CommandService::class),
             'conversationId'
         );
