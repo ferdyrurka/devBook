@@ -41,7 +41,7 @@ class Notification
 
     /**
      * @var Collection
-     * @ORM\ManyToMany(targetEntity="User", inversedBy="notificationsReferences")
+     * @ORM\ManyToMany(targetEntity="User", inversedBy="notificationReferences")
      * @ORM\JoinTable(name="notifications_user",
      *      joinColumns={
      *          @ORM\JoinColumn(name="notification_id", referencedColumnName="id")
