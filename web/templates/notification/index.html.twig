@@ -5,7 +5,7 @@
         <div class="row">
             {% for notification in notifications %}
                 <div class="col-12">
-                    <span class="date-notification">{{ notification.getDate() }}</span>
+                    <span class="date-notification">{{ notification.getDate().format('Y-m-d H:i:s') }}</span>
                     <span class="message-notification">{{ notification.getMessage() }}</span>
                 </div>
             {% endfor %}
