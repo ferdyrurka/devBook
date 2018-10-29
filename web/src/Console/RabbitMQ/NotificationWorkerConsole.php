@@ -33,6 +33,18 @@ class NotificationWorkerConsole extends Command
         parent::__construct();
     }
 
+    public function configure(): void
+    {
+        $this->setName('RabbitMQ:notification-worker-start');
+        $this->setDescription('This script tracks a RabbitMQ Queue name notification');
+        $this->setHelp('During writing');
+    }
+
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|null|void
+     */
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $channel = $this->rabbitMQConnectService->getChannel();
