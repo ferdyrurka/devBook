@@ -55,10 +55,10 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
             );
         }
 
-        $user = $this->userRepository->getOneByPrivateWebToken($message['userToken']);
+        $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($message['userToken']);
 
         $notification = new Notification();
-        $notification->setMessage($message['notificationMessage']);
+        $notification->setMessage(htmlspecialchars($message['notificationMessage']));
         $notification->setDate(new \DateTime('now', new \DateTimeZone('Europe/Warsaw')));
         $notification->addUser($user);
 
