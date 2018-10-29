@@ -122,4 +122,17 @@ class Notification
 
         return $this;
     }
+
+    public function addUser(User $user): self
+    {
+        $this->getUserReferences()->add($user);
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        $this->getUserReferences()->remove($user);
+
+        return $this;
+    }
 }
