@@ -13,30 +13,9 @@ use PhpAmqpLib\Message\AMQPMessage;
  */
 class AddPost extends RabbitMQComponentAbstract
 {
-
-    /**
-     * @var string
-     */
-    private $content;
-
-    /**
-     * @var integer
-     */
-    private $userId;
-
-    /**
-     * @param string $content
-     */
-    public function setContent(string $content): void
+    public function __construct(string $content, int $userId)
     {
         $this->content = $content;
-    }
-
-    /**
-     * @param int $userId
-     */
-    public function setUserId(int $userId)
-    {
         $this->userId = $userId;
     }
 
