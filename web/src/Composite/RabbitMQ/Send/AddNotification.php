@@ -19,14 +19,14 @@ class AddNotification extends RabbitMQComponentAbstract
     private $messageNotification;
 
     /**
-     * @var int
+     * @var string
      */
-    private $userId;
+    private $userToken;
 
-    public function __construct(string $messageNotification, int $userId)
+    public function __construct(string $messageNotification, string $userToken)
     {
         $this->messageNotification = $messageNotification;
-        $this->userId = $userId;
+        $this->userToken = $userToken;
     }
 
     public function execute(AMQPChannel $channel): void
@@ -37,7 +37,7 @@ class AddNotification extends RabbitMQComponentAbstract
             json_encode(
                 [
                     'content' => $this->messageNotification,
-                    'userId' => $this->userId,
+                    'userToken' => $this->userToken,
                 ]
             )
         );

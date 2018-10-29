@@ -19,7 +19,7 @@ class AddNotificationTest extends TestCase
 
     public function testExecute(): void
     {
-        $addPost = new AddNotification('Hello World Message', 1);
+        $addPost = new AddNotification('Hello World Message', 'token');
 
         $amqpChannel = \Mockery::mock(AMQPChannel::class);
         $amqpChannel->shouldReceive('queue_declare')->once()->withArgs(['notification', false, false, false]);
