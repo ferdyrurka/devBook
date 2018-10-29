@@ -57,8 +57,8 @@ class AddPostHandler extends RabbitMQHandlerAbstract
     {
         $message = json_decode($message->body, true);
 
-        if (!isset($message['content'], $message['userId']) &&
-            \is_int($message['userId']) && \is_string($message['content'])
+        if (!isset($message['content'], $message['userId']) ||
+            !\is_int($message['userId']) || !\is_string($message['content'])
         ) {
             throw new MessageIsEmptyException('Message is empty!');
         }
