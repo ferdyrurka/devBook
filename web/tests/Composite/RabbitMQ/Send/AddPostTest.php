@@ -19,9 +19,7 @@ class AddPostTest extends TestCase
 
     public function testExecute(): void
     {
-        $addPost = new AddPost();
-        $addPost->setContent('Hello World');
-        $addPost->setUserId(1);
+        $addPost = new AddPost('Hello World', 1);
 
         $amqpChannel = \Mockery::mock(AMQPChannel::class);
         $amqpChannel->shouldReceive('queue_declare')->once()->withArgs(['post', false, false, false]);
