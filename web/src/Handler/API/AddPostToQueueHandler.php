@@ -30,9 +30,7 @@ class AddPostToQueueHandler implements HandlerInterface
 
     public function handle(CommandInterface $addPostToQueueCommand): void
     {
-        $addPost = new AddPost();
-        $addPost->setUserId($addPostToQueueCommand->getUserId());
-        $addPost->setContent(htmlspecialchars($addPostToQueueCommand->getContent()));
+        $addPost = new AddPost(htmlspecialchars($addPostToQueueCommand->getContent()), (int) $addPostToQueueCommand->getUserId());
 
         $this->sendComposite->add($addPost);
         $this->sendComposite->run();
