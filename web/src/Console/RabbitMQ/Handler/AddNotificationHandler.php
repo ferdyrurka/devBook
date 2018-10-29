@@ -47,15 +47,15 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
     {
         $message = json_decode($jsonMessage->body, true);
 
-        if (!isset($message['userId'], $message['notificationMessage']) ||
-            !\is_int($message['userId']) || !\is_string($message['notificationMessage'])
+        if (!isset($message['userToken'], $message['notificationMessage']) ||
+            !\is_string($message['userToken']) || !\is_string($message['notificationMessage'])
         ) {
             throw new NotFullMessageException('Not full message or failed type 
             in AddNotification handler. Message value: ' . \json_encode($message)
             );
         }
 
-        $user = $this->userRepository->getOneById((int) $message['userId']);
+        $user = $this->userRepository->getOneByPrivateWebToken($message['userToken']);
 
         $notification = new Notification();
         $notification->setMessage($message['notificationMessage']);
