@@ -36,7 +36,7 @@ class AddNotification extends RabbitMQComponentAbstract
         $message = new AMQPMessage(
             json_encode(
                 [
-                    'content' => $this->messageNotification,
+                    'notificationMessage' => $this->messageNotification,
                     'userToken' => $this->userToken,
                 ]
             )
