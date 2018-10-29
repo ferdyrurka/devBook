@@ -70,7 +70,7 @@ class CreateConversationHandlerTest extends TestCase
         $userRepository = Mockery::mock(UserRepository::class);
         $userRepository->shouldReceive('getOneByPublicToken')->withArgs(['receive_user_token'])
             ->times(2)->andReturn($userReceive);
-        $userRepository->shouldReceive('getOneByPrivateWebToken')->withArgs(['send_user_token'])
+        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->withArgs(['send_user_token'])
             ->times(2)->andReturn($userSend);
         $userRepository->shouldReceive('getCountConversationByUsersId')->times(2)->withArgs([1, 2])->andReturn(0, 0);
 

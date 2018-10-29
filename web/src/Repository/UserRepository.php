@@ -66,17 +66,17 @@ class UserRepository extends ServiceEntityRepository
      * @throws UserNotFoundException
      * @return User
      */
-    public function getOneByPrivateWebToken(string $token): User
+    public function getOneByPrivateWebTokenOrMobileToken(string $token): User
     {
         $user = $this->getEntityManager()->createQuery('
-            SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token 
+            SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token  OR u.privateMobileToken = :token
         ')
             ->setParameter(':token', $token)
             ->execute()
         ;
 
         if (empty($user)) {
-            throw new UserNotFoundException('User by public token not found. Token have value ' . $token);
+            throw new UserNotFoundException('User by private token not found. Token have value ' . $token);
         }
 
         return $user[0];

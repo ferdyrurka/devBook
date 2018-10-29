@@ -83,7 +83,7 @@ class CreateConversationHandler implements HandlerInterface
         }
 
         $receiveUser = $this->userRepository->getOneByPublicToken($receiveToken);
-        $sendUser = $this->userRepository->getOneByPrivateWebToken($sendToken);
+        $sendUser = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($sendToken);
 
         if ($this->userRepository->getCountConversationByUsersId(
             $sendUser->getId(),
