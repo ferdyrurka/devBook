@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Command\Console\DevMessenger\AddMessageCommand;
+use App\Command\Console\DevMessenger\AddNotificationNewMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
@@ -81,22 +82,50 @@ class DevMessengerServiceTest extends TestCase
             }
 
             return false;
-        }))->once();
+        }))->times(2);
         $conn->resourceId = 1;
 
         $this->devMessengerService->onOpen($conn);
 
         //Send message
 
-        $this->commandService->shouldReceive('handle')->with(Mockery::on(function (AddMessageCommand $addMessageCommand) {
-            $array = $addMessageCommand->getMessage();
-            if ((array_key_exists('conversationId', $array) && array_key_exists('message', $array)) && $addMessageCommand->getFromId() === 1) {
-                return true;
-            }
-            return true;
-        }))->once();
-        $this->commandService->shouldReceive('getResult')->once()->andReturn([1]);
+        $this->commandService->shouldReceive('handle')->with(Mockery::on(function ($command) {
 
+            if ($command instanceof AddMessageCommand) {
+                $array = $command->getMessage();
+                if ((
+                    array_key_exists('conversationId', $array) &&
+                    array_key_exists('message', $array)) && $command->getFromId() === 1
+                ) {
+                    return true;
+                }
+            } elseif ($command instanceof AddNotificationNewMessageCommand) {
+                if ($command->getUserFromToken() === 'userIdValue' &&
+                    $command->getUserToken() === 'userTokenNotification'
+                ) {
+                    return true;
+                }
+            }
+
+            return false;
+        }))->times(3);
+        $this->commandService->shouldReceive('getResult')->times(2)->andReturn([1],
+            [1, 'notification' => [
+                    1 => 'userTokenNotification'
+                ]
+            ]
+        );
+
+        #Send only WebSocket
+
+        $this->devMessengerService->onMessage($conn, json_encode([
+            'type' => 'message',
+            'userId' => 'userIdValue',
+            'conversationId' => 'conversationIdValue',
+            'message' => 'messageValue'
+        ]));
+
+        #Send notification and WebSocket
         $this->devMessengerService->onMessage($conn, json_encode([
             'type' => 'message',
             'userId' => 'userIdValue',
