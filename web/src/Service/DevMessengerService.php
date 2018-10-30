@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Command\Console\DevMessenger\AddMessageCommand;
+use App\Command\Console\DevMessenger\AddNotificationNewMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
@@ -16,7 +17,6 @@ use Ratchet\MessageComponentInterface;
  */
 class DevMessengerService implements MessageComponentInterface
 {
-
     /**
      * @var \SplObjectStorage
      */
@@ -35,11 +35,8 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
-     * @param RegistryOnlineUserCommand $registryOnlineUserCommand
      */
-    public function __construct(
-        CommandService $commandService
-    ) {
+    public function __construct(CommandService $commandService) {
         $this->clients = new \SplObjectStorage();
 
         $this->commandService = $commandService;
@@ -57,6 +54,8 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * @param ConnectionInterface $from
      * @param string $msg
+     * @throws \App\Exception\GetResultUndefinedException
+     * @throws \App\Exception\LackHandlerToCommandException
      */
     public function onMessage(ConnectionInterface $from, $msg): void
     {
@@ -97,9 +96,29 @@ class DevMessengerService implements MessageComponentInterface
                 $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
 
                 $this->commandService->handle($addMessageCommand);
+                $usersConnIdAndSendNotification = $this->commandService->getResult();
 
-                foreach ($this->commandService->getResult() as $userConnId) {
-                    //Users is online
+                if (isset($usersConnIdAndSendNotification['notification'])) {
+                    $fromUserToken = htmlspecialchars($msg['userId']);
+
+                    /**
+                     * Send notification
+                     */
+                    foreach ($usersConnIdAndSendNotification['notification'] as $userToSendNotificationToken) {
+                        $addNotificationCommand = new AddNotificationNewMessageCommand($userToSendNotificationToken, $fromUserToken);
+                        $this->commandService->handle($addNotificationCommand);
+                    }
+
+                    /**
+                     * Delete notification
+                     */
+                    unset($usersConnIdAndSendNotification['notification']);
+                }
+
+                foreach ($usersConnIdAndSendNotification as $userConnId) {
+                    /**
+                     * Send message using WebSocket because user is online
+                     */
                     $this->users[$userConnId]->send(json_encode([
                         'type' => 'message',
                         'conversationId' => htmlspecialchars($msg['conversationId']),
@@ -140,6 +159,7 @@ class DevMessengerService implements MessageComponentInterface
 
     /**
      * @param ConnectionInterface $conn
+     * @throws \App\Exception\LackHandlerToCommandException
      */
     public function onClose(ConnectionInterface $conn): void
     {
