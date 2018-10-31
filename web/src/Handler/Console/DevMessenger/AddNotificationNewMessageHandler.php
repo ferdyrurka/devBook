@@ -16,6 +16,11 @@ use App\Repository\UserRepository;
 class AddNotificationNewMessageHandler implements HandlerInterface
 {
     /**
+     * @var boolean
+     */
+    private $result = true;
+
+    /**
      * @var UserRepository
      */
     private $userRepository;
@@ -32,6 +37,7 @@ class AddNotificationNewMessageHandler implements HandlerInterface
         $userSendNotification = $addNotificationNewMessageCommand->getUserToken();
 
         if ($userToken->getPrivateWebToken() === $userSendNotification || $userToken->getPrivateMobileToken() === $userSendNotification) {
+            $this->result = false;
             return;
         }
 
@@ -41,6 +47,14 @@ class AddNotificationNewMessageHandler implements HandlerInterface
             $userSendNotification
         ));
         $sendComposite->run();
+    }
+
+    /**
+     * @return bool
+     */
+    public function getResult(): bool
+    {
+        return $this->result;
     }
 }
 
