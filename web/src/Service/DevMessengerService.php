@@ -107,6 +107,10 @@ class DevMessengerService implements MessageComponentInterface
                     foreach ($usersConnIdAndSendNotification['notification'] as $userToSendNotificationToken) {
                         $addNotificationCommand = new AddNotificationNewMessageCommand($userToSendNotificationToken, $fromUserToken);
                         $this->commandService->handle($addNotificationCommand);
+
+                        if ($this->commandService->getResult() === true) {
+                            break;
+                        }
                     }
 
                     /**
