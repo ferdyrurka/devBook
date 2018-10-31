@@ -13,11 +13,18 @@ use App\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 
+/**
+ * Class AddNotificationNewMessageHandlerTest
+ * @package App\Tests\Handler\Console\DevMessenger
+ */
 class AddNotificationNewMessageHandlerTest extends TestCase
 {
 
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
+    /**
+     * @runInSeparateProcess
+     */
     public function testHandleGood(): void
     {
         $userToken = Mockery::mock(UserToken::class);
@@ -42,6 +49,9 @@ class AddNotificationNewMessageHandlerTest extends TestCase
         $addNotificationNewMessageHandler->handle($addNotificationNewMessageCommand);
     }
 
+    /**
+     * @runInSeparateProcess
+     */
     public function testHandleUserSend(): void
     {
         $userToken = Mockery::mock(UserToken::class);

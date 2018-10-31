@@ -50,7 +50,7 @@ class AddMessageHandler implements HandlerInterface
     private $validator;
 
     /**
-     * AddMessageCommand constructor.
+     * AddMessageHandler constructor.
      * @param EntityManagerInterface $entityManager
      * @param ConversationRepository $conversationRepository
      * @param RedisService $redisService
@@ -106,18 +106,18 @@ class AddMessageHandler implements HandlerInterface
 
     /**
      * @param array $conversation
-     * @param string $fromUserUuid
+     * @param string $userPrivateToken
      * @param string $conversationId
      * @param int $userId
      * @throws UserNotFoundInConversationException
      */
     private function checkExistUserInConversation(
         array $conversation,
-        string $fromUserUuid,
+        string $userPrivateToken,
         string $conversationId,
         int $userId
     ): void {
-        if (!\in_array($fromUserUuid, $conversation)) {
+        if (!\in_array($userPrivateToken, $conversation)) {
             $conversationEntity = $this->conversationRepository->findConversationByConversationIdAndUserId(
                 $conversationId,
                 $userId
@@ -125,7 +125,7 @@ class AddMessageHandler implements HandlerInterface
 
             if (!$conversationEntity) {
                 throw new UserNotFoundInConversationException(
-                    'User by UUID: ' . $fromUserUuid . ' not exist in conversation'
+                    'User by UUID: ' . $userPrivateToken . ' not exist in conversation'
                 );
             }
 
@@ -139,6 +139,9 @@ class AddMessageHandler implements HandlerInterface
      */
     private function getUserByUuid(string $fromUserUuid): ?array
     {
+        /**
+         * Table user key is userId (online) value is connId and UserId in Mysql
+         */
         $userUuidRedis = $this->redisService->setDatabase(1);
         $user = $userUuidRedis->get($fromUserUuid);
 
@@ -154,21 +157,26 @@ class AddMessageHandler implements HandlerInterface
      * @param string $fromUserUuid
      * @return array
      */
-    private function getReceiveUserMessageOrSendAllert(array $conversation, string $fromUserUuid): array
+    private function getReceiveUserMessageOrSendNotification(array $conversation, string $fromUserUuid): array
     {
+        /**
+         * Table user key is userId (online) value is connId and UserId in Mysql
+         */
         $userUuidRedis = $this->redisService->setDatabase(1);
 
         $result = [];
+        $sendNotificationId = 0;
 
-        foreach ($conversation as $userToken) {
-            if ($userToken === $fromUserUuid) {
+        foreach ($conversation as $privateUserToken) {
+            if ($privateUserToken === $fromUserUuid) {
                 continue;
             }
 
-            $user = $userUuidRedis->get($userToken);
+            $user = $userUuidRedis->get($privateUserToken);
 
             if (empty($user)) {
-                //Alert
+                $result['notification'][$sendNotificationId] = $privateUserToken;
+                ++$sendNotificationId;
 
                 continue;
             }
@@ -190,6 +198,9 @@ class AddMessageHandler implements HandlerInterface
      */
     public function handle(CommandInterface $addMessageCommand): void
     {
+        /**
+         * User online Database
+         */
         $userByConn = $this->redisService->setDatabase(0);
 
         /**
@@ -207,20 +218,20 @@ class AddMessageHandler implements HandlerInterface
         /**
          * Check if the user has logged in with the same token
          */
-        if ($message['userId'] !== $userPrivateToken) {
+        if (htmlspecialchars($message['userId']) !== $userPrivateToken) {
             throw new NotAuthorizationUUIDException(
                 'Not authorization, maybe hack this UUID.
                 ConnId: ' . $addMessageCommand->getFromId() . 'and Message: ' . json_encode($message)
             );
         }
 
-        #Conversation valid
-
+        /**
+         * Conversation valid
+         * Database key is conversationId value all users in conversation
+         */
         $conversationRedis = $this->redisService->setDatabase(2);
         $conversationId = htmlspecialchars($message['conversationId']);
         $conversation = $conversationRedis->get($conversationId);
-
-        $user = $this->getUserByUuid($userPrivateToken);
 
         if (empty($conversation)) {
             $conversation = $this->addMissingConversation($conversationId);
@@ -233,14 +244,20 @@ class AddMessageHandler implements HandlerInterface
             }
         }
 
+        $user = $this->getUserByUuid($userPrivateToken);
+
+        /**
+         * Check exist user and get receive user or send notification
+         */
+
         $this->checkExistUserInConversation(
             $conversation,
             $userPrivateToken,
             $conversationId,
-            $user['id']
+            (int) $user['id']
         );
 
-        $this->result = $this->getReceiveUserMessageOrSendAllert(
+        $this->result = $this->getReceiveUserMessageOrSendNotification(
             $conversation,
             $userPrivateToken
         );
