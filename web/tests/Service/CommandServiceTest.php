@@ -4,13 +4,11 @@ declare(strict_types=1);
 namespace App\Tests\Service;
 
 use App\Command\API\GetMessageCommand;
-use App\Command\CommandInterface;
-use App\Command\CreateUserCommand;
+use App\Command\Web\CreateUserCommand;
 use App\Entity\User;
 use App\Exception\GetResultUndefinedException;
 use App\Handler\API\GetMessageHandler;
-use App\Handler\CreateUserHandler;
-use App\Repository\MessageRepository;
+use App\Handler\Web\CreateUserHandler;
 use App\Service\CommandService;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
@@ -66,7 +64,7 @@ class CommandServiceTest extends TestCase
         $createUserHandler->shouldReceive('handle')->once();
 
         $container = Mockery::mock(ContainerInterface::class);
-        $container->shouldReceive('get')->withArgs(['App\Handler\CreateUserHandler'])->andReturn($createUserHandler);
+        $container->shouldReceive('get')->withArgs(['App\Handler\Web\CreateUserHandler'])->andReturn($createUserHandler);
 
         $user = Mockery::mock(User::class);
         $command = new CreateUserCommand($user);

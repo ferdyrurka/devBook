@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Command\CreateUserCommand;
+use App\Command\Web\CreateUserCommand;
 use App\Entity\User;
 use App\Form\SignUpForm;
 use App\Service\CommandService;

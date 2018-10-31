@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Command;
+namespace App\Command\Web;
 
+use App\Command\CommandInterface;
 use App\Entity\User;
 
 /**

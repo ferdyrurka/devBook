@@ -1,13 +1,13 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Handler;
+namespace App\Tests\Handler\Web;
 
-use App\Command\CreateUserCommand;
+use App\Command\Web\CreateUserCommand;
 use App\Entity\User;
 use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
-use App\Handler\CreateUserHandler;
+use App\Handler\Web\CreateUserHandler;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use \Mockery;

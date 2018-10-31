@@ -1,11 +1,12 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Handler;
+namespace App\Handler\Web;
 
 use App\Command\CommandInterface;
 use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
+use App\Handler\HandlerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
