@@ -85,6 +85,8 @@ i zaaktualizuj baze danych 'php bin/console doctrine:schema:update --force'
 
 ### License
 
+GNU GENERAL PUBLIC LICENSE Version 3
+
 ### Authors
 
 * **Łukasz Staniszewski**
