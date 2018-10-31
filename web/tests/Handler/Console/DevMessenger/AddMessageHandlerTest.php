@@ -55,7 +55,7 @@ class AddMessageHandlerTest extends TestCase
             ->andReturn(
                 #conn redis
                 'hello_world_uuid',
-                #Conversation redis
+                #Conversation redis (online and not online)
                 json_encode([
                     'privateWebToken',
                     'privateMobileToken',
@@ -139,7 +139,11 @@ class AddMessageHandlerTest extends TestCase
         $addMessage->handle($addMessageCommand);
 
         $result = $addMessage->getResult();
-        //Because return a in query json_encode(['connId' => 3]),
+        /**
+         * Because return a in query json_encode(['connId' => 3]),
+         * Return and notification
+         */
+        $this->assertEquals('privateMobileToken', $result['notification'][0]);
         $this->assertEquals(3, $result[0]);
 
         $addMessage->handle($addMessageCommand);
