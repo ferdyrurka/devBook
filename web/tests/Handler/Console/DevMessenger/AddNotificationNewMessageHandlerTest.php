@@ -47,6 +47,7 @@ class AddNotificationNewMessageHandlerTest extends TestCase
 
         $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository);
         $addNotificationNewMessageHandler->handle($addNotificationNewMessageCommand);
+        $this->assertTrue($addNotificationNewMessageHandler->getResult());
     }
 
     /**
@@ -68,6 +69,7 @@ class AddNotificationNewMessageHandlerTest extends TestCase
 
         $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository);
         $addNotificationNewMessageHandler->handle($addNotificationNewMessageCommand);
+        $this->assertFalse($addNotificationNewMessageHandler->getResult());
     }
 }
 
