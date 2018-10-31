@@ -28,7 +28,7 @@ class Notification
      * @var string
      * @ORM\Column(type="string", length=255)
      * @Assert\Regex(
-     *     pattern="/^([A-ZĄĆĘŁŃÓŚŹŻ|a-ząćęłnóśźż|0-9| |,|.|-]){0,255}$/"
+     *     pattern="/^([A-ZĄĆĘŁŃÓŚŹŻ|a-ząćęłnóśźż|0-9| |,|.|-|:|!|(|)]){0,255}$/"
      * )
      */
     private $message;
