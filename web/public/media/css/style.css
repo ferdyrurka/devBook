@@ -159,7 +159,7 @@ body{
 
 .modal-container {
     width: 60%;
-    margin: 0px auto;
+    margin: 0 auto;
     padding: 20px 30px;
     background-color: #fff;
     border-radius: 2px;
@@ -418,4 +418,23 @@ body{
 
 footer{
     width: 100%;
+}
+
+/**
+ * Notifications
+ */
+
+.container-notification{
+    padding: 12px;
+    margin-bottom: 10px;
+    border-bottom: #999999 solid 0.5px;
+}
+
+.message-notification{
+    padding-left: 30px;
+}
+
+.date-notification{
+    color: #404040;
+    font-size: 12px;
 }

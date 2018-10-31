@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             {% for notification in notifications %}
-                <div class="col-12">
+                <div class="col-12 container-notification">
                     <span class="date-notification">{{ notification.getDate().format('Y-m-d H:i:s') }}</span>
                     <span class="message-notification">{{ notification.getMessage() }}</span>
                 </div>
