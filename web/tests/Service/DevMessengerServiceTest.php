@@ -108,12 +108,16 @@ class DevMessengerServiceTest extends TestCase
             }
 
             return false;
-        }))->times(3);
-        $this->commandService->shouldReceive('getResult')->times(2)->andReturn([1],
+        }))->times(4);
+        $this->commandService->shouldReceive('getResult')->times(4)->andReturn([1],
             [1, 'notification' => [
+                    0 => 'userTokenNotification',
                     1 => 'userTokenNotification'
                 ]
-            ]
+            ],
+            #AddNotificationNewMessageCommand result
+            false,
+            true
         );
 
         #Send only WebSocket
