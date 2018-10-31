@@ -6,6 +6,7 @@ namespace App\Console\RabbitMQ;
 
 
 use App\Console\RabbitMQ\Handler\AddNotificationHandler;
+use App\Exception\DevBookException;
 use App\Service\RabbitMQConnectService;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -63,11 +64,18 @@ class NotificationWorkerConsole extends Command
 
         $output->writeln('Notification worker ready to working!');
 
-        while (count($channel->callbacks)) {
-            $channel->wait();
 
-            $output->writeln('I\'m added notification to database!');
-        }
+            while (count($channel->callbacks)) {
+                try{
+                    $channel->wait();
+
+                    $output->writeln('I\'m added notification to database!');
+                }catch (DevBookException $exception) {
+                    $output->writeln($exception->getMessage());
+                }
+
+            }
+
 
         $output->writeln('Connection closed, bye. :(');
 
