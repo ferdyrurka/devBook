@@ -7,7 +7,8 @@ use App\Command\CommandInterface;
 use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserRepository;
+use App\Repository\UserTokenRepository;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -19,9 +20,14 @@ class CreateUserHandler implements HandlerInterface
 {
 
     /**
-     * @var EntityManagerInterface
+     * @var UserTokenRepository
      */
-    private $entityManager;
+    private $userTokenRepository;
+
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
 
     /**
      * @var UserPasswordEncoderInterface
@@ -34,19 +40,22 @@ class CreateUserHandler implements HandlerInterface
     private $validator;
 
     /**
-     * CreateUserCommand constructor.
-     * @param EntityManagerInterface $entityManager
+     * CreateUserHandler constructor.
+     * @param UserRepository $userRepository
+     * @param UserTokenRepository $userTokenRepository
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param ValidatorInterface $validator
      */
     public function __construct(
-        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        UserTokenRepository $userTokenRepository,
         UserPasswordEncoderInterface $passwordEncoder,
         ValidatorInterface $validator
     ) {
         $this->passwordEncoder = $passwordEncoder;
-        $this->entityManager = $entityManager;
         $this->validator = $validator;
+        $this->userRepository = $userRepository;
+        $this->userTokenRepository = $userTokenRepository;
     }
 
     /**
@@ -78,8 +87,7 @@ class CreateUserHandler implements HandlerInterface
             throw new ValidateEntityUnsuccessfulException('Failed validate entity in: ' . \get_class($this));
         }
 
-        $this->entityManager->persist($userToken);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->userTokenRepository->save($userToken);
+        $this->userRepository->save($user);
     }
 }

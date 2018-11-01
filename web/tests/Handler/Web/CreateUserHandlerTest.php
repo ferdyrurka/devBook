@@ -8,7 +8,8 @@ use App\Entity\User;
 use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\Web\CreateUserHandler;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserRepository;
+use App\Repository\UserTokenRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -24,7 +25,8 @@ class CreateUserHandlerTest extends TestCase
 
     public function testExecute(): void
     {
-        $entityManager = Mockery::mock(EntityManagerInterface::class);
+        $userRepository = Mockery::mock(UserRepository::class);
+        $userTokenRepository = Mockery::mock(UserTokenRepository::class);
 
         $passwordEncoder = Mockery::mock(UserPasswordEncoderInterface::class);
 
@@ -37,7 +39,12 @@ class CreateUserHandlerTest extends TestCase
             return false;
         }))->andReturn([], [], ['failed']);
 
-        $createUserHandler = new CreateUserHandler($entityManager, $passwordEncoder, $validator);
+        $createUserHandler = new CreateUserHandler(
+            $userRepository,
+            $userTokenRepository,
+            $passwordEncoder,
+            $validator
+        );
 
         $user = Mockery::mock(User::class);
         $user->shouldReceive('setCreatedAt')->withArgs([\DateTime::class])->times(2);
@@ -51,14 +58,8 @@ class CreateUserHandlerTest extends TestCase
             ->withArgs([User::class, 'qwertyuiop'])->andreturn('hash_password')
         ;
 
-        $entityManager->shouldReceive('persist')->with(Mockery::on(function ($obj) {
-            if ($obj instanceof User || $obj instanceof UserToken) {
-                return true;
-            }
-
-            return false;
-        }))->times(2);
-        $entityManager->shouldReceive('flush')->once();
+        $userRepository->shouldReceive('save')->withArgs([User::class])->once();
+        $userTokenRepository->shouldReceive('save')->withArgs([UserToken::class])->once();
 
         $createUserCommand = new CreateUserCommand($user);
 
