@@ -65,21 +65,9 @@ class CreateUserHandler implements HandlerInterface
      */
     public function handle(CommandInterface $createUserCommand): void
     {
-        $time = new \DateTime('now');
-        $mobileTokenTime = new \DateTime('+10 day');
-        $webTokenTime = new \DateTime('+1 day');
-        $publicTokenTime = new \DateTime('+30 day');
-
-        $userToken = new UserToken();
-        $userToken->setRefreshMobileToken($mobileTokenTime);
-        $userToken->setRefreshWebToken($webTokenTime);
-        $userToken->setRefreshPublicToken($publicTokenTime);
-
         $user = $createUserCommand->getUser();
+        $userToken = $createUserCommand->getUserToken();
 
-        $user->setCreatedAt($time);
-        $user->setRoles('ROLE_USER');
-        $user->setStatus(1);
         $user->setPassword($this->passwordEncoder->encodePassword($user, $user->getPlainPassword()));
         $user->setUserTokenReferences($userToken);
 
