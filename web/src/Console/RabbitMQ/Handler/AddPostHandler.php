@@ -5,8 +5,8 @@ namespace App\Console\RabbitMQ\Handler;
 
 use App\Exception\MessageIsEmptyException;
 use App\Exception\ValidateEntityUnsuccessfulException;
+use App\Repository\PostRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Post;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -18,9 +18,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AddPostHandler extends RabbitMQHandlerAbstract
 {
     /**
-     * @var EntityManagerInterface
+     * @var PostRepository
      */
-    private $entityManager;
+    private $postRepository;
 
     /**
      * @var UserRepository
@@ -33,17 +33,17 @@ class AddPostHandler extends RabbitMQHandlerAbstract
     private $validator;
 
     /**
-     * AddPostCommand constructor.
-     * @param EntityManagerInterface $entityManager
+     * AddPostHandler constructor.
+     * @param PostRepository $postRepository
      * @param UserRepository $userRepository
      * @param ValidatorInterface $validator
      */
     public function __construct(
-        EntityManagerInterface $entityManager,
+        PostRepository $postRepository,
         UserRepository $userRepository,
         ValidatorInterface $validator
     ) {
-        $this->entityManager = $entityManager;
+        $this->postRepository = $postRepository;
         $this->userRepository = $userRepository;
         $this->validator = $validator;
     }
@@ -52,6 +52,8 @@ class AddPostHandler extends RabbitMQHandlerAbstract
      * @param AMQPMessage $message
      * @throws MessageIsEmptyException
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function handle(AMQPMessage $message): void
     {
@@ -78,7 +80,6 @@ class AddPostHandler extends RabbitMQHandlerAbstract
             throw new ValidateEntityUnsuccessfulException('Failed validate entity Post in: ' . \get_class($this));
         }
 
-        $this->entityManager->persist($post);
-        $this->entityManager->flush();
+        $this->postRepository->save($post);
     }
 }
