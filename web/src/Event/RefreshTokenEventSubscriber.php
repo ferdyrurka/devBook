@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace App\Event;
 
-use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserTokenRepository;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -24,24 +23,29 @@ class RefreshTokenEventSubscriber implements EventSubscriberInterface
     private $security;
 
     /**
-     * @var EntityManagerInterface
+     * @var UserTokenRepository
      */
-    private $entityManager;
+    private $userTokenRepository;
 
     /**
      * @var ValidatorInterface
      */
     private $validator;
 
-    public function __construct(Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator)
-    {
-        $this->entityManager = $entityManager;
+    public function __construct(
+        Security $security,
+        UserTokenRepository $userTokenRepository,
+        ValidatorInterface $validator
+    ) {
+        $this->userTokenRepository = $userTokenRepository;
         $this->security = $security;
         $this->validator = $validator;
     }
 
     /**
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function onKernelController(): void
     {
@@ -80,21 +84,12 @@ class RefreshTokenEventSubscriber implements EventSubscriberInterface
 
 
         if ($save) {
-            $this->saveUserToken($userToken);
-        }
-    }
+            if (\count($this->validator->validate($userToken)) > 0) {
+                throw new ValidateEntityUnsuccessfulException('Entity UserToken is failed in: ' . \get_class($this));
+            }
 
-    /**
-     * @param UserToken $userToken
-     * @throws ValidateEntityUnsuccessfulException
-     */
-    private function saveUserToken(UserToken $userToken) :void
-    {
-        if (\count($this->validator->validate($userToken)) > 0) {
-            throw new ValidateEntityUnsuccessfulException('Entity UserToken is failed in: ' . \get_class($this));
+            $this->userTokenRepository->save($userToken);
         }
-        $this->entityManager->persist($userToken);
-        $this->entityManager->flush();
     }
 
     public static function getSubscribedEvents(): array

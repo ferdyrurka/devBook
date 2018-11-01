@@ -7,12 +7,11 @@ use App\Entity\User;
 use App\Entity\UserToken;
 use App\Event\RefreshTokenEventSubscriber;
 use App\Exception\ValidateEntityUnsuccessfulException;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserTokenRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Symfony\Component\Security\Core\Security;
 use \DateTime;
-use \DateTimeZone;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -29,9 +28,8 @@ class RefreshTokenEventSubscriberTest extends TestCase
      */
     public function testOnKernelController(): void
     {
-        $entityManager = Mockery::mock(EntityManagerInterface::class);
-        $entityManager->shouldReceive('persist')->withArgs([UserToken::class])->times(3);
-        $entityManager->shouldReceive('flush');
+        $userTokenRepository = Mockery::mock(UserTokenRepository::class);
+        $userTokenRepository->shouldReceive('save')->withArgs([UserToken::class])->times(3);
 
         $userToken = Mockery::mock(UserToken::class);
         $userToken->shouldReceive('getRefreshPublicToken')->andReturn(
@@ -80,7 +78,7 @@ class RefreshTokenEventSubscriberTest extends TestCase
         $validator->shouldReceive('validate')->withArgs([UserToken::class])
             ->andReturn([], [], [], ['Validation false'])->times(4);
 
-        $refreshToken = new RefreshTokenEventSubscriber($security, $entityManager, $validator);
+        $refreshToken = new RefreshTokenEventSubscriber($security, $userTokenRepository, $validator);
         /**
          * Tests times
          */
