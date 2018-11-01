@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace App\NullObject\Repository;
+namespace App\Repository\NullObject;
 
 use App\Entity\Message;
 
