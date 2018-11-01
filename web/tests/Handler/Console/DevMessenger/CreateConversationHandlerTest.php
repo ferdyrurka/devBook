@@ -10,9 +10,9 @@ use App\Entity\UserToken;
 use App\Exception\InvalidException;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\Console\DevMessenger\CreateConversationHandler;
+use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Predis\Client;
@@ -37,10 +37,8 @@ class CreateConversationHandlerTest extends TestCase
         $redisService = Mockery::mock(RedisService::class);
         $redisService->shouldReceive('setDatabase')->withArgs([2])->andReturn($client);
 
-        $entityManager = Mockery::mock(EntityManagerInterface::class);
-        $entityManager->shouldReceive('persist')->once()->withArgs([Conversation::class]);
-        $entityManager->shouldReceive('flush')->once();
-
+        $conversationRepository= Mockery::mock(ConversationRepository::class);
+        $conversationRepository->shouldReceive('save')->once()->withArgs([Conversation::class]);
         #User receive
 
         $userTokenReceive = Mockery::mock(UserToken::class);
@@ -78,7 +76,7 @@ class CreateConversationHandlerTest extends TestCase
         $validator->shouldReceive('validate')->withArgs([Conversation::class])->andReturn([], ['failed'])->times(2);
 
         $createConversationHandler = new CreateConversationHandler(
-            $entityManager,
+            $conversationRepository,
             $userRepository,
             $redisService,
             $validator
@@ -103,7 +101,7 @@ class CreateConversationHandlerTest extends TestCase
      */
     public function testInvalidException(): void
     {
-        $entityManager = Mockery::mock(EntityManagerInterface::class);
+        $conversationRepository= Mockery::mock(ConversationRepository::class);
         $userRepository = Mockery::mock(UserRepository::class);
         $redisService = Mockery::mock(RedisService::class);
         $client = Mockery::mock(Client::class);
@@ -112,7 +110,7 @@ class CreateConversationHandlerTest extends TestCase
         $validator = Mockery::mock(ValidatorInterface::class);
 
         $createConversationHandler = new CreateConversationHandler(
-            $entityManager,
+            $conversationRepository,
             $userRepository,
             $redisService,
             $validator

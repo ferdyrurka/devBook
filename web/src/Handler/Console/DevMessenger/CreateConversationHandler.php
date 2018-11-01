@@ -8,9 +8,9 @@ use App\Entity\Conversation;
 use App\Exception\InvalidException;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
+use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
-use Doctrine\ORM\EntityManagerInterface;
 use Predis\Client;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -27,9 +27,9 @@ class CreateConversationHandler implements HandlerInterface
     private $userRepository;
 
     /**
-     * @var EntityManagerInterface
+     * @var ConversationRepository
      */
-    private $entityManager;
+    private $conversationRepository;
 
     /**
      * @var Client
@@ -47,14 +47,14 @@ class CreateConversationHandler implements HandlerInterface
     private $validator;
 
     /**
-     * CreateConversationCommand constructor.
-     * @param EntityManagerInterface $entityManager
+     * CreateConversationHandler constructor.
+     * @param ConversationRepository $conversationRepository
      * @param UserRepository $userRepository
      * @param RedisService $redis
-     * @param $validator
+     * @param ValidatorInterface $validator
      */
     public function __construct(
-        EntityManagerInterface $entityManager,
+        ConversationRepository $conversationRepository,
         UserRepository $userRepository,
         RedisService $redis,
         ValidatorInterface $validator
@@ -62,7 +62,7 @@ class CreateConversationHandler implements HandlerInterface
         $this->redis = $redis;
         $this->validator = $validator;
         $this->userRepository = $userRepository;
-        $this->entityManager = $entityManager;
+        $this->conversationRepository = $conversationRepository;
     }
 
     /**
@@ -112,8 +112,7 @@ class CreateConversationHandler implements HandlerInterface
             );
         }
 
-        $this->entityManager->persist($conversation);
-        $this->entityManager->flush();
+        $this->conversationRepository->save($conversation);
 
         #Redis
 
