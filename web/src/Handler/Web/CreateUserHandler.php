@@ -52,22 +52,14 @@ class CreateUserHandler implements HandlerInterface
     /**
      * @param CommandInterface $createUserCommand
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Exception
      */
     public function handle(CommandInterface $createUserCommand): void
     {
-        $timeZone = new \DateTimeZone('Europe/Warsaw');
-
         $time = new \DateTime('now');
-        $time->setTimezone($timeZone);
-
         $mobileTokenTime = new \DateTime('+10 day');
-        $mobileTokenTime->setTimezone($timeZone);
-
         $webTokenTime = new \DateTime('+1 day');
-        $webTokenTime->setTimezone($timeZone);
-
         $publicTokenTime = new \DateTime('+30 day');
-        $publicTokenTime->setTimezone($timeZone);
 
         $userToken = new UserToken();
         $userToken->setRefreshMobileToken($mobileTokenTime);

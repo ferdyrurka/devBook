@@ -5,7 +5,7 @@ namespace App\Tests\Event;
 
 use App\Entity\User;
 use App\Entity\UserToken;
-use App\Event\RefreshTokenEventListener;
+use App\Event\RefreshTokenEventSubscriber;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -19,7 +19,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  * Class RefreshTokenEventListenerTest
  * @package App\Tests\Event
  */
-class RefreshTokenEventListenerTest extends TestCase
+class RefreshTokenEventSubscriberTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
@@ -35,25 +35,25 @@ class RefreshTokenEventListenerTest extends TestCase
 
         $userToken = Mockery::mock(UserToken::class);
         $userToken->shouldReceive('getRefreshPublicToken')->andReturn(
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('-1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw'))
+            new DateTime('+1 hour'),
+            new DateTime('-1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour')
         )->times(5);
         $userToken->shouldReceive('getRefreshWebToken')->andReturn(
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('-1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw'))
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('-1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour')
         )->times(5);
         $userToken->shouldReceive('getRefreshMobileToken')->andReturn(
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('+1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('-1 hour', new DateTimeZone('Europe/Warsaw')),
-            new DateTime('-1 hour', new DateTimeZone('Europe/Warsaw'))
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('+1 hour'),
+            new DateTime('-1 hour'),
+            new DateTime('-1 hour')
         )->times(5);
 
         $userToken->shouldReceive('setRefreshPublicToken')->once();
@@ -80,7 +80,7 @@ class RefreshTokenEventListenerTest extends TestCase
         $validator->shouldReceive('validate')->withArgs([UserToken::class])
             ->andReturn([], [], [], ['Validation false'])->times(4);
 
-        $refreshToken = new RefreshTokenEventListener($security, $entityManager, $validator);
+        $refreshToken = new RefreshTokenEventSubscriber($security, $entityManager, $validator);
         /**
          * Tests times
          */
