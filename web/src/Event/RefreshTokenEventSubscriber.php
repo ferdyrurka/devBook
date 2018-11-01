@@ -18,7 +18,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 /**
  * Class RefreshTokenEventListener
  */
-class RefreshTokenEventListener implements EventSubscriberInterface
+class RefreshTokenEventSubscriber implements EventSubscriberInterface
 {
     /**
      * @var Security
