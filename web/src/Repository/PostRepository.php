@@ -32,4 +32,26 @@ class PostRepository extends ServiceEntityRepository
             ->execute()
             ;
     }
+
+    /**
+     * @param Post $post
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function save(Post $post): void
+    {
+        $this->getEntityManager()->persist($post);
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * @param Post $post
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function remove(Post $post): void
+    {
+        $this->getEntityManager()->remove($post);
+        $this->getEntityManager()->flush();
+    }
 }
