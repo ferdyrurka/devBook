@@ -87,9 +87,7 @@ class DevMessengerService implements MessageComponentInterface
              * Send to users or alert (RabbitMQ).
              */
             case 'message':
-                if (!array_key_exists('conversationId', $msg) || empty($msg['conversationId']) ||
-                    !array_key_exists('message', $msg) || empty($msg['message'])
-                ) {
+                if (!isset($msg['conversationId'], $msg['message'])) {
                     break;
                 }
 
@@ -137,7 +135,7 @@ class DevMessengerService implements MessageComponentInterface
              * return conversationId, full name user and result.
              */
             case 'create':
-                if (!array_key_exists('receiveId', $msg) || empty($msg['receiveId'])) {
+                if (!isset($msg['receiveId'])) {
                     break;
                 }
 
