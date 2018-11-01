@@ -50,9 +50,12 @@ class UserRepository extends ServiceEntityRepository
         $user = $this->getEntityManager()->createQuery('
             SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.publicToken = :token 
         ')
+            ->setMaxResults(1)
             ->setParameter(':token', $token)
             ->execute()
         ;
+
+        var_dump($user);
 
         if (empty($user)) {
             throw new UserNotFoundException('User by public token not found. Token have value ' . $token);
@@ -71,6 +74,7 @@ class UserRepository extends ServiceEntityRepository
         $user = $this->getEntityManager()->createQuery('
             SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token  OR u.privateMobileToken = :token
         ')
+            ->setMaxResults(1)
             ->setParameter(':token', $token)
             ->execute()
         ;
