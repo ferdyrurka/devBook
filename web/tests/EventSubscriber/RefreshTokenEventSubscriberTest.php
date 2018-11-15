@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Event;
+namespace App\Tests\EventSubscriber;
 
 use App\Entity\User;
 use App\Entity\UserToken;
-use App\Event\RefreshTokenEventSubscriber;
+use App\EventSubscriber\RefreshTokenEventSubscriber;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Repository\UserTokenRepository;
 use PHPUnit\Framework\TestCase;
