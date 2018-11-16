@@ -73,7 +73,7 @@ class GetConversationListHandlerTest extends TestCase
             }
 
             return false;
-        });
+        })->once();
 
         //Tests
 

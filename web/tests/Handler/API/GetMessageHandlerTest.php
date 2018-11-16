@@ -60,7 +60,7 @@ class GetMessageHandlerTest extends TestCase
             }
 
             return false;
-        });
+        })->once();
 
         $getMessageHandler = new GetMessageHandler($messageRepository, $eventDispatcher);
         $getMessageHandler->handle($getMessageCommand);

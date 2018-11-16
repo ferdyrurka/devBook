@@ -52,7 +52,7 @@ class SearchFriendsHandlerTest extends TestCase
 
                     return false;
                 }
-        );
+        )->once();
 
         $searchFriendsHandler = new SearchFriendsHandler($userRepository, $eventDispatcher);
         $searchFriendsHandler->handle($searchFriendsCommand);
