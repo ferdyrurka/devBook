@@ -9,7 +9,9 @@ use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
+use App\Event\AddNotificationNewMessageEvent;
 use App\EventListener\AddMessageEventListener;
+use App\EventListener\AddNotificationNewMessageEventListener;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -100,13 +102,15 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $listener = new AddMessageEventListener();
-                $this->eventDispatcher->addListener(AddMessageEvent::NAME, [$listener, 'setSendUsers']);
+                $addMessageEventListener = new AddMessageEventListener();
+                $addNotificationNewMessageListener = new AddNotificationNewMessageEventListener();
+                $this->eventDispatcher->addListener(AddMessageEvent::NAME, [$addMessageEventListener, 'setSendUsers']);
+                $this->eventDispatcher->addListener(AddNotificationNewMessageEvent::NAME, [$addNotificationNewMessageListener, 'setSend']);
 
                 $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
                 $this->commandService->handle($addMessageCommand);
 
-                $usersConnIdAndSendNotification = $listener->getSendUsers();
+                $usersConnIdAndSendNotification = $addMessageEventListener->getSendUsers();
 
                 if (isset($usersConnIdAndSendNotification['notification'])) {
                     $fromUserToken = htmlspecialchars($msg['userId']);
@@ -118,7 +122,7 @@ class DevMessengerService implements MessageComponentInterface
                         $addNotificationCommand = new AddNotificationNewMessageCommand($userToSendNotificationToken, $fromUserToken);
                         $this->commandService->handle($addNotificationCommand);
 
-                        if ($this->commandService->getResult() === true) {
+                        if ($addNotificationNewMessageListener->isSend()) {
                             break;
                         }
                     }
