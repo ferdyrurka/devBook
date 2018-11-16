@@ -8,11 +8,14 @@ use App\Command\Console\DevMessenger\AddNotificationNewMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
+use App\Event\AddMessageEvent;
+use App\EventListener\AddMessageEventListener;
 use App\Service\CommandService;
 use App\Service\DevMessengerService;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Ratchet\ConnectionInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class DevMessengerServiceTest
@@ -22,14 +25,27 @@ class DevMessengerServiceTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
+    /**
+     * @var DevMessengerService
+     */
     private $devMessengerService;
+
+    /**
+     * @var CommandService
+     */
     private $commandService;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
 
     public function setUp(): void
     {
         $this->commandService = Mockery::mock(CommandService::class);
+        $this->eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
 
-        $this->devMessengerService = new DevMessengerService($this->commandService);
+        $this->devMessengerService = new DevMessengerService($this->commandService, $this->eventDispatcher);
 
         parent::setUp();
     }
@@ -63,8 +79,30 @@ class DevMessengerServiceTest extends TestCase
         ]));
     }
 
+    /**
+     * @runInSeparateProcess
+     */
     public function testOnMessageSendMessage(): void
     {
+        $addMessageListener = Mockery::mock('overload:' . AddMessageEventListener::class);
+        $addMessageListener->shouldReceive('getSendUsers')->once()->andReturn(
+            [
+                1,
+                'notification' => [
+                    0 => 'userTokenNotification',
+                    1 => 'userTokenNotification'
+                ]
+            ]
+        );
+
+        $this->eventDispatcher->shouldReceive('addListener')->times(2)->withArgs(function (string $name, array $listener) {
+            if ($listener[0] instanceof AddMessageEventListener && $name === AddMessageEvent::NAME) {
+                return true;
+            }
+
+            return false;
+        });
+
         //Open connection
 
         $conn = Mockery::mock(ConnectionInterface::class);
@@ -108,17 +146,9 @@ class DevMessengerServiceTest extends TestCase
             }
 
             return false;
-        }))->times(4);
-        $this->commandService->shouldReceive('getResult')->times(4)->andReturn([1],
-            [1, 'notification' => [
-                    0 => 'userTokenNotification',
-                    1 => 'userTokenNotification'
-                ]
-            ],
-            #AddNotificationNewMessageCommand result
-            false,
-            true
-        );
+        }))->times(5);
+
+        $this->commandService->shouldReceive('getResult')->andReturn(false, true);
 
         #Send only WebSocket
 
@@ -202,7 +232,7 @@ class DevMessengerServiceTest extends TestCase
         ]));
     }
 
-    public function testOnClose()
+    public function testOnClose(): void
     {
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
