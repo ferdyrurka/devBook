@@ -55,8 +55,6 @@ class UserRepository extends ServiceEntityRepository
             ->execute()
         ;
 
-        var_dump($user);
-
         if (empty($user)) {
             throw new UserNotFoundException('User by public token not found. Token have value ' . $token);
         }
