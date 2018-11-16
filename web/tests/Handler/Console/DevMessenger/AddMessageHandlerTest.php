@@ -8,6 +8,7 @@ use App\Entity\Conversation;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Entity\UserToken;
+use App\Event\AddMessageEvent;
 use App\Exception\NotAuthorizationUUIDException;
 use App\Exception\UserNotFoundException;
 use App\Exception\UserNotFoundInConversationException;
@@ -20,6 +21,7 @@ use Doctrine\Common\Collections\Collection;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Predis\Client;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -29,6 +31,11 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AddMessageHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
+    /**
+     * @var array
+     */
+    private $result;
 
     /**
      * @throws NotAuthorizationUUIDException
@@ -136,22 +143,36 @@ class AddMessageHandlerTest extends TestCase
         $validator = Mockery::mock(ValidatorInterface::class);
         $validator->shouldReceive('validate')->withArgs([Message::class])->times(2)->andReturn([], []);
 
-        $addMessage = new AddMessageHandler($messageRepository, $conversationRepository, $redis, $validator);
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->withArgs(function (string $name, $event) {
+            if ($event instanceof AddMessageEvent && $name === AddMessageEvent::NAME) {
+                $this->result = $event->getSendUsers();
+                return true;
+            }
+
+            return false;
+        })->times(2);
+
+        $addMessage = new AddMessageHandler(
+            $messageRepository,
+            $conversationRepository,
+            $redis,
+            $validator,
+            $eventDispatcher
+        );
         $addMessage->handle($addMessageCommand);
 
-        $result = $addMessage->getResult();
         /**
          * Because return a in query json_encode(['connId' => 3]),
          * Return and notification
          */
-        $this->assertEquals('privateMobileToken', $result['notification'][0]);
-        $this->assertEquals(3, $result[0]);
+        $this->assertEquals('privateMobileToken', $this->result ['notification'][0]);
+        $this->assertEquals(3, $this->result [0]);
 
         $addMessage->handle($addMessageCommand);
 
-        $result = $addMessage->getResult();
         //Because return a in query json_encode(['connId' => 4]),
-        $this->assertEquals(4, $result[0]);
+        $this->assertEquals(4, $this->result [0]);
     }
 
 
@@ -180,7 +201,13 @@ class AddMessageHandlerTest extends TestCase
         $validator = Mockery::mock(ValidatorInterface::class);
 
         $addMessageCommand = new AddMessageCommand([], 1);
-        $addMessage = new AddMessageHandler($messageRepository, $conversationRepository, $redis, $validator);
+        $addMessage = new AddMessageHandler(
+            $messageRepository,
+            $conversationRepository,
+            $redis,
+            $validator,
+            Mockery::mock(EventDispatcherInterface::class)
+        );
 
         $this->expectException(UserNotFoundException::class);
         $addMessage->handle($addMessageCommand);
@@ -211,7 +238,13 @@ class AddMessageHandlerTest extends TestCase
         $validator = Mockery::mock(ValidatorInterface::class);
 
         $addMessageCommand = new AddMessageCommand(['userId' => 'failedToken'], 1);
-        $addMessage = new AddMessageHandler($messageRepository, $conversationRepository, $redis, $validator);
+        $addMessage = new AddMessageHandler(
+            $messageRepository,
+            $conversationRepository,
+            $redis,
+            $validator,
+            Mockery::mock(EventDispatcherInterface::class)
+        );
 
         $this->expectException(NotAuthorizationUUIDException::class);
         $addMessage->handle($addMessageCommand);
@@ -263,7 +296,13 @@ class AddMessageHandlerTest extends TestCase
             'conversationId' => 'conversationIdValue',
             'userId' => 'privateToken'
         ], 1);
-        $addMessage = new AddMessageHandler($messageRepository, $conversationRepository, $redis, $validator);
+        $addMessage = new AddMessageHandler(
+            $messageRepository,
+            $conversationRepository,
+            $redis,
+            $validator,
+            Mockery::mock(EventDispatcherInterface::class)
+        );
 
         $this->expectException(UserNotFoundInConversationException::class);
         $addMessage->handle($addMessageCommand);
@@ -336,7 +375,13 @@ class AddMessageHandlerTest extends TestCase
         $validator = Mockery::mock(ValidatorInterface::class);
         $validator->shouldReceive('validate')->withArgs([Message::class])->once()->andReturn(['failed validation']);
 
-        $addMessage = new AddMessageHandler($messageRepository, $conversationRepository, $redis, $validator);
+        $addMessage = new AddMessageHandler(
+            $messageRepository,
+            $conversationRepository,
+            $redis,
+            $validator,
+            Mockery::mock(EventDispatcherInterface::class)
+        );
         $this->expectException(ValidateEntityUnsuccessfulException::class);
         $addMessage->handle($addMessageCommand);
     }
