@@ -8,8 +8,11 @@ use App\Command\Console\DevMessenger\AddNotificationNewMessageCommand;
 use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
+use App\Event\AddMessageEvent;
+use App\EventListener\AddMessageEventListener;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class DevMessengerService
@@ -33,12 +36,18 @@ class DevMessengerService implements MessageComponentInterface
     private $commandService;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * DevMessengerService constructor.
      * @param CommandService $commandService
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(CommandService $commandService) {
+    public function __construct(CommandService $commandService, EventDispatcherInterface $eventDispatcher) {
         $this->clients = new \SplObjectStorage();
-
+        $this->eventDispatcher = $eventDispatcher;
         $this->commandService = $commandService;
     }
 
@@ -91,10 +100,13 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
+                $listener = new AddMessageEventListener();
+                $this->eventDispatcher->addListener(AddMessageEvent::NAME, [$listener, 'setSendUsers']);
 
+                $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
                 $this->commandService->handle($addMessageCommand);
-                $usersConnIdAndSendNotification = $this->commandService->getResult();
+
+                $usersConnIdAndSendNotification = $listener->getSendUsers();
 
                 if (isset($usersConnIdAndSendNotification['notification'])) {
                     $fromUserToken = htmlspecialchars($msg['userId']);
