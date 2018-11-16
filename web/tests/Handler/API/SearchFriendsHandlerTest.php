@@ -45,12 +45,8 @@ class SearchFriendsHandlerTest extends TestCase
         $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
         $eventDispatcher->shouldReceive('dispatch')
             ->withArgs(function (string $name, $event) {
-                    if ($event instanceof SearchFriendsEvent) {
+                    if ($event instanceof SearchFriendsEvent && $name === SearchFriendsEvent::NAME) {
                         $this->result = $event->getUsers();
-                        return true;
-                    }
-
-                    if ($name === SearchFriendsEvent::NAME) {
                         return true;
                     }
 
