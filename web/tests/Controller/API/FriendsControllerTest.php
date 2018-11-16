@@ -8,6 +8,7 @@ use App\Controller\API\FriendsController;
 use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use App\Tests\WebTestCase;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use \Mockery;
@@ -55,10 +56,13 @@ class FriendsControllerTest extends WebTestCase
         $request = Mockery::mock(Request::class);
         $request->shouldReceive('get')->withArgs(['q'])->andReturn('q');
 
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+
         $this->expectException(UserNotFoundException::class);
         $friendsController->searchFriendsAction(
             Mockery::mock(CommandService::class),
-            $request
+            $request,
+            $eventDispatcher
         );
     }
 
