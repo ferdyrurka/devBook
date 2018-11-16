@@ -4,8 +4,10 @@ declare(strict_types=1);
 namespace App\Handler\API;
 
 use App\Command\CommandInterface;
+use App\Event\SearchFriendsEvent;
 use App\Handler\HandlerInterface;
 use App\Repository\UserRepository;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class GetFriendsCommand
@@ -19,16 +21,18 @@ class SearchFriendsHandler implements HandlerInterface
     private $userRepository;
 
     /**
-     * @var array
+     * @var EventDispatcherInterface
      */
-    private $result;
+    private $eventDispatcher;
 
     /**
-     * GetFriendsCommand constructor.
+     * SearchFriendsHandler constructor.
      * @param UserRepository $userRepository
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(UserRepository $userRepository)
+    public function __construct(UserRepository $userRepository, EventDispatcherInterface $eventDispatcher)
     {
+        $this->eventDispatcher = $eventDispatcher;
         $this->userRepository = $userRepository;
     }
 
@@ -50,14 +54,7 @@ class SearchFriendsHandler implements HandlerInterface
             ++$i;
         }
 
-        $this->result = $result;
-    }
-
-    /**
-     * @return array
-     */
-    public function getResult(): array
-    {
-        return $this->result;
+        $searchFriendsEvent = new SearchFriendsEvent($result);
+        $this->eventDispatcher->dispatch(SearchFriendsEvent::NAME, $searchFriendsEvent);
     }
 }
