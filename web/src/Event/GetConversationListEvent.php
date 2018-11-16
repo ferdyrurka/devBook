@@ -11,6 +11,8 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class GetConversationListEvent extends Event
 {
+    public const NAME = 'get.conversation.list';
+
     /**
      * @var array
      */
