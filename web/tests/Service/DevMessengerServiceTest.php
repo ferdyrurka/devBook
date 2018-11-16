@@ -9,7 +9,9 @@ use App\Command\Console\DevMessenger\CreateConversationCommand;
 use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
+use App\Event\AddNotificationNewMessageEvent;
 use App\EventListener\AddMessageEventListener;
+use App\EventListener\AddNotificationNewMessageEventListener;
 use App\Service\CommandService;
 use App\Service\DevMessengerService;
 use PHPUnit\Framework\TestCase;
@@ -80,28 +82,45 @@ class DevMessengerServiceTest extends TestCase
     }
 
     /**
+     * @param array $onMessage
+     * @param array $addMessage
+     * @param bool $addNotification
+     * @param array $times
+     * @throws \App\Exception\GetResultUndefinedException
+     * @throws \App\Exception\LackHandlerToCommandException
      * @runInSeparateProcess
+     * @dataProvider getDataSetMessage
      */
-    public function testOnMessageSendMessage(): void
-    {
-        $addMessageListener = Mockery::mock('overload:' . AddMessageEventListener::class);
-        $addMessageListener->shouldReceive('getSendUsers')->once()->andReturn(
-            [
-                1,
-                'notification' => [
-                    0 => 'userTokenNotification',
-                    1 => 'userTokenNotification'
-                ]
-            ]
-        );
+    public function testOnMessageSendMessage(
+        array $onMessage,
+        array $addMessage,
+        bool $addNotification,
+        array $times
+    ): void {
+        // Listeners
 
-        $this->eventDispatcher->shouldReceive('addListener')->times(2)->withArgs(function (string $name, array $listener) {
-            if ($listener[0] instanceof AddMessageEventListener && $name === AddMessageEvent::NAME) {
+        $addMessageListener = Mockery::mock('overload:' . AddMessageEventListener::class);
+        $addMessageListener->shouldReceive('getSendUsers')->andReturn($addMessage)->times($times['getSendUsers']);
+
+        $addNotificationListener = Mockery::mock('overload:' . AddNotificationNewMessageEventListener::class);
+        $addNotificationListener->shouldReceive('isSend')->andReturn($addNotification)->times($times['isSend']);
+
+        // Event
+
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('addListener')->withArgs(function (string $name, array $listener) {
+            if (
+                ($listener[0] instanceof AddMessageEventListener && $name === AddMessageEvent::NAME) ||
+                (
+                    $listener[0] instanceof AddNotificationNewMessageEventListener &&
+                    $name === AddNotificationNewMessageEvent::NAME
+                )
+            ) {
                 return true;
             }
 
             return false;
-        });
+        })->times($times['addListener']);
 
         //Open connection
 
@@ -120,20 +139,19 @@ class DevMessengerServiceTest extends TestCase
             }
 
             return false;
-        }))->times(2);
+        }))->times($times['send']);
         $conn->resourceId = 1;
-
-        $this->devMessengerService->onOpen($conn);
 
         //Send message
 
-        $this->commandService->shouldReceive('handle')->with(Mockery::on(function ($command) {
+        $commandService = Mockery::mock(CommandService::class);
+        $commandService->shouldReceive('handle')->with(Mockery::on(function ($command) {
 
             if ($command instanceof AddMessageCommand) {
                 $array = $command->getMessage();
                 if ((
-                    array_key_exists('conversationId', $array) &&
-                    array_key_exists('message', $array)) && $command->getFromId() === 1
+                        array_key_exists('conversationId', $array) &&
+                        array_key_exists('message', $array)) && $command->getFromId() === 1
                 ) {
                     return true;
                 }
@@ -146,42 +164,115 @@ class DevMessengerServiceTest extends TestCase
             }
 
             return false;
-        }))->times(5);
+        }))->times($times['handle']);
 
-        $this->commandService->shouldReceive('getResult')->andReturn(false, true);
+        $devMessengerService = new DevMessengerService($commandService, $eventDispatcher);
+        $devMessengerService->onOpen($conn);
+        $devMessengerService->onMessage($conn, json_encode($onMessage));
+    }
 
-        #Send only WebSocket
-
-        $this->devMessengerService->onMessage($conn, json_encode([
-            'type' => 'message',
-            'userId' => 'userIdValue',
-            'conversationId' => 'conversationIdValue',
-            'message' => 'messageValue'
-        ]));
-
-        #Send notification and WebSocket
-        $this->devMessengerService->onMessage($conn, json_encode([
-            'type' => 'message',
-            'userId' => 'userIdValue',
-            'conversationId' => 'conversationIdValue',
-            'message' => 'messageValue'
-        ]));
-
-        #Not exist conversationId, break execute code
-
-        $this->devMessengerService->onMessage($conn, json_encode([
-            'type' => 'message',
-            'userId' => 'userIdValue',
-            'message' => 'messageValue'
-        ]));
-
-        #Not exist message, break execute code
-
-        $this->devMessengerService->onMessage($conn, json_encode([
-            'type' => 'message',
-            'userId' => 'userIdValue',
-            'conversationId' => 'conversationIdValue'
-        ]));
+    public function getDataSetMessage(): array
+    {
+        return [
+            #1
+            [
+                [
+                    'type' => 'message',
+                    'userId' => 'userIdValue',
+                    'conversationId' => 'conversationIdValue',
+                    'message' => 'messageValue'
+                ],
+                [1],
+                false,
+                [
+                    'getSendUsers' => 1,
+                    'isSend' => 0,
+                    'addListener' => 2,
+                    'send' => 1,
+                    'handle' => 1,
+                ]
+            ],
+            #2
+            [
+                [
+                    'type' => 'message',
+                    'userId' => 'userIdValue',
+                    'conversationId' => 'conversationIdValue',
+                    'message' => 'messageValue'
+                ],
+                [
+                    1,
+                    'notification' => [
+                        0 => 'userTokenNotification'
+                    ]
+                ],
+                true,
+                [
+                    'getSendUsers' => 1,
+                    'isSend' => 1,
+                    'addListener' => 2,
+                    'send' => 1,
+                    'handle' => 2,
+                ]
+            ],
+            #3
+            [
+                [
+                    'type' => 'message',
+                    'userId' => 'userIdValue',
+                    'conversationId' => 'conversationIdValue',
+                    'message' => 'messageValue'
+                ],
+                [
+                    1,
+                    'notification' => [
+                        0 => 'userTokenNotification'
+                    ]
+                ],
+                false,
+                [
+                    'getSendUsers' => 1,
+                    'isSend' => 1,
+                    'addListener' => 2,
+                    'send' => 1,
+                    'handle' => 2,
+                ]
+            ],
+            #4
+            [
+                [
+                    'type' => 'message',
+                    'userId' => 'userIdValue',
+                    'message' => 'messageValue'
+                ],
+                [1],
+                false,
+                [
+                    'getSendUsers' => 0,
+                    'isSend' => 0,
+                    'addListener' => 0,
+                    'send' => 0,
+                    'handle' => 0,
+                ]
+            ],
+            #5
+            [
+                [
+                    'type' => 'message',
+                    'userId' => 'userIdValue',
+                    'conversationId' => 'conversationIdValue'
+                ],
+                [1],
+                false,
+                [
+                    'getSendUsers' => 0,
+                    'isSend' => 0,
+                    'addListener' => 0,
+                    'send' => 0,
+                    'handle' => 0,
+                ]
+            ]
+        ];
     }
 
     public function testSendMessageCreate(): void
