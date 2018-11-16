@@ -8,10 +8,12 @@ use App\Composite\RabbitMQ\Send\AddNotification;
 use App\Composite\RabbitMQ\SendComposite;
 use App\Entity\User;
 use App\Entity\UserToken;
+use App\Event\AddNotificationNewMessageEvent;
 use App\Handler\Console\DevMessenger\AddNotificationNewMessageHandler;
 use App\Repository\UserRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class AddNotificationNewMessageHandlerTest
@@ -21,6 +23,11 @@ class AddNotificationNewMessageHandlerTest extends TestCase
 {
 
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
+    /**
+     * @var array
+     */
+    private $result;
 
     /**
      * @runInSeparateProcess
@@ -43,11 +50,25 @@ class AddNotificationNewMessageHandlerTest extends TestCase
         $sendComposite->shouldReceive('add')->withArgs([AddNotification::class])->once();
         $sendComposite->shouldReceive('run')->once();
 
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(
+            function (string $name, $event) {
+                if ($event instanceof AddNotificationNewMessageEvent &&
+                    $name === AddNotificationNewMessageEvent::NAME
+                ) {
+                    $this->result = $event->isSend();
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
         $addNotificationNewMessageCommand = new AddNotificationNewMessageCommand('userToken', 'fromUserToken');
 
-        $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository);
+        $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository, $eventDispatcher);
         $addNotificationNewMessageHandler->handle($addNotificationNewMessageCommand);
-        $this->assertTrue($addNotificationNewMessageHandler->getResult());
+        $this->assertTrue($this->result);
     }
 
     /**
@@ -65,11 +86,25 @@ class AddNotificationNewMessageHandlerTest extends TestCase
         $userRepository = Mockery::mock(UserRepository::class);
         $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->withArgs(['fromUserToken'])->andReturn($user);
 
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(
+            function (string $name, $event) {
+                if ($event instanceof AddNotificationNewMessageEvent &&
+                    $name === AddNotificationNewMessageEvent::NAME
+                ) {
+                    $this->result = $event->isSend();
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
         $addNotificationNewMessageCommand = new AddNotificationNewMessageCommand('userToken', 'fromUserToken');
 
-        $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository);
+        $addNotificationNewMessageHandler = new AddNotificationNewMessageHandler($userRepository, $eventDispatcher);
         $addNotificationNewMessageHandler->handle($addNotificationNewMessageCommand);
-        $this->assertFalse($addNotificationNewMessageHandler->getResult());
+        $this->assertFalse($this->result);
     }
 }
 
