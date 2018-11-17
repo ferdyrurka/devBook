@@ -5,6 +5,7 @@ namespace App\Handler\Console\DevMessenger;
 
 use App\Command\CommandInterface;
 use App\Entity\Conversation;
+use App\Event\CreateConversationEvent;
 use App\Exception\InvalidException;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
@@ -12,6 +13,7 @@ use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
 use Predis\Client;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -37,14 +39,14 @@ class CreateConversationHandler implements HandlerInterface
     private $redis;
 
     /**
-     * @var array
-     */
-    private $result;
-
-    /**
      * @var ValidatorInterface
      */
     private $validator;
+
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
 
     /**
      * CreateConversationHandler constructor.
@@ -52,17 +54,20 @@ class CreateConversationHandler implements HandlerInterface
      * @param UserRepository $userRepository
      * @param RedisService $redis
      * @param ValidatorInterface $validator
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
         ConversationRepository $conversationRepository,
         UserRepository $userRepository,
         RedisService $redis,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->redis = $redis;
         $this->validator = $validator;
         $this->userRepository = $userRepository;
         $this->conversationRepository = $conversationRepository;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -89,8 +94,7 @@ class CreateConversationHandler implements HandlerInterface
             $sendUser->getId(),
             $receiveUser->getId()
         ) > 0 ) {
-            $this->result['result'] = false;
-
+            $this->sendEvent(['result' => false]);
             return;
         }
 
@@ -130,18 +134,16 @@ class CreateConversationHandler implements HandlerInterface
             $usersToken
         ]));
 
-        $this->result = [
+        $this->sendEvent([
             'fullName' => $receiveUser->getFirstName() . ' ' . $receiveUser->getSurname(),
             'conversationId' => $conversation->getConversationId(),
             'result' => true
-        ];
+        ]);
     }
 
-    /**
-     * @return array
-     */
-    public function getResult(): array
+    private function sendEvent(array $result): void
     {
-        return $this->result;
+        $event = new CreateConversationEvent($result);
+        $this->eventDispatcher->dispatch(CreateConversationEvent::NAME, $event);
     }
 }
