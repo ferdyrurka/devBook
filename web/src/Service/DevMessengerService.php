@@ -69,7 +69,6 @@ class DevMessengerService implements MessageComponentInterface
     /**
      * @param ConnectionInterface $from
      * @param string $msg
-     * @throws \App\Exception\GetResultUndefinedException
      * @throws \App\Exception\LackHandlerToCommandException
      */
     public function onMessage(ConnectionInterface $from, $msg): void
