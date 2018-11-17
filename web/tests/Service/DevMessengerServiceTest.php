@@ -10,8 +10,10 @@ use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
 use App\Event\AddNotificationNewMessageEvent;
+use App\Event\RegistryOnlineUserEvent;
 use App\EventListener\AddMessageEventListener;
 use App\EventListener\AddNotificationNewMessageEventListener;
+use App\EventListener\RegistryOnlineUserEventListener;
 use App\Service\CommandService;
 use App\Service\DevMessengerService;
 use PHPUnit\Framework\TestCase;
@@ -52,12 +54,31 @@ class DevMessengerServiceTest extends TestCase
         parent::setUp();
     }
 
-    public function testOnMessageRegistry(): void
+    /**
+     * @param bool $registryResult
+     * @param int $handleTimes
+     * @throws \App\Exception\GetResultUndefinedException
+     * @throws \App\Exception\LackHandlerToCommandException
+     * @runInSeparateProcess
+     * @dataProvider OnMessageRegistryData
+     */
+    public function testOnMessageRegistry(bool $registryResult, int $handleTimes): void
     {
+        $this->eventDispatcher->shouldReceive('addListener')->withArgs(function (string $name, array $args) {
+            if ($args[0] instanceof RegistryOnlineUserEventListener && $name === RegistryOnlineUserEvent::NAME) {
+                return true;
+            }
+
+            return false;
+        })->once();
+
+        $registryOnlineUserEventListener = Mockery::mock('overload:' . RegistryOnlineUserEventListener::class);
+        $registryOnlineUserEventListener->shouldReceive('isResult')->andReturn($registryResult);
+
         $conn = Mockery::mock(ConnectionInterface::class);
         $conn->resourceId = 1;
 
-        $this->commandService->shouldReceive('handle')->times(3)->with(Mockery::on(function ($class) {
+        $this->commandService->shouldReceive('handle')->times($handleTimes)->with(Mockery::on(function ($class) {
             if (($class instanceof RegistryOnlineUserCommand && array_key_exists('userId', $class->getMessage()) && $class->getConnId() === 1) ||
                 $class instanceof DeleteOnlineUserCommand
             ) {
@@ -66,19 +87,27 @@ class DevMessengerServiceTest extends TestCase
 
             return false;
         }));
-        $this->commandService->shouldReceive('getResult')->times(2)->andReturn(true, false);
 
         $this->devMessengerService->onMessage($conn, json_encode([
             'type' => 'registry',
             'userId' => 'userIdValue'
         ]));
+    }
 
-        #Result is false
-
-        $this->devMessengerService->onMessage($conn, json_encode([
-            'type' => 'registry',
-            'userId' => 'userIdValue'
-        ]));
+    public function OnMessageRegistryData(): array
+    {
+        return [
+            #1
+            [
+                true,
+                1
+            ],
+            #2
+            [
+                false,
+                2
+            ]
+        ];
     }
 
     /**
@@ -89,7 +118,7 @@ class DevMessengerServiceTest extends TestCase
      * @throws \App\Exception\GetResultUndefinedException
      * @throws \App\Exception\LackHandlerToCommandException
      * @runInSeparateProcess
-     * @dataProvider getDataSetMessage
+     * @dataProvider onMessageSendMessageData
      */
     public function testOnMessageSendMessage(
         array $onMessage,
@@ -171,7 +200,7 @@ class DevMessengerServiceTest extends TestCase
         $devMessengerService->onMessage($conn, json_encode($onMessage));
     }
 
-    public function getDataSetMessage(): array
+    public function onMessageSendMessageData(): array
     {
         return [
             #1
