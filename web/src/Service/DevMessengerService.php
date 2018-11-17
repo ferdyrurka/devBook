@@ -10,9 +10,11 @@ use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
 use App\Event\AddNotificationNewMessageEvent;
+use App\Event\CreateConversationEvent;
 use App\Event\RegistryOnlineUserEvent;
 use App\EventListener\AddMessageEventListener;
 use App\EventListener\AddNotificationNewMessageEventListener;
+use App\EventListener\CreateConversationEventListener;
 use App\EventListener\RegistryOnlineUserEventListener;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
@@ -162,13 +164,19 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
+                $createConversationEvent = new CreateConversationEventListener();
+                $this->eventDispatcher->addListener(
+                    CreateConversationEvent::NAME,
+                    [$createConversationEvent, 'setConversation']
+                );
+
                 $createConversationCommand = new CreateConversationCommand(
                     htmlspecialchars($msg['userId']),
                     htmlspecialchars($msg['receiveId'])
                 );
                 $this->commandService->handle($createConversationCommand);
 
-                $result = $this->commandService->getResult();
+                $result = $createConversationEvent->getConversation();
 
                 if (!empty($result)) {
                     $result['type'] = 'create';
