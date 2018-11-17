@@ -10,8 +10,10 @@ use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
 use App\Event\AddNotificationNewMessageEvent;
+use App\Event\RegistryOnlineUserEvent;
 use App\EventListener\AddMessageEventListener;
 use App\EventListener\AddNotificationNewMessageEventListener;
+use App\EventListener\RegistryOnlineUserEventListener;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -83,11 +85,16 @@ class DevMessengerService implements MessageComponentInterface
              * Register in array Users
              */
             case 'registry':
-                $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
+                $registryOnlineUserListener = new RegistryOnlineUserEventListener();
+                $this->eventDispatcher->addListener(
+                    RegistryOnlineUserEvent::NAME,
+                    [$registryOnlineUserListener, 'setResult']
+                );
 
+                $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
                 $this->commandService->handle($registryOnlineUserCommand);
 
-                if ($this->commandService->getResult() === false) {
+                if (!$registryOnlineUserListener->isResult()) {
                     $this->onClose($from);
                 }
 
