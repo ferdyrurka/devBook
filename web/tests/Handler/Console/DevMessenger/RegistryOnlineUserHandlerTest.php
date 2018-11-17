@@ -5,6 +5,7 @@ namespace App\Tests\Handler\Console\DevMessenger;
 
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Entity\User;
+use App\Event\RegistryOnlineUserEvent;
 use App\Exception\UserNotFoundException;
 use App\Handler\Console\DevMessenger\RegistryOnlineUserHandler;
 use App\Repository\UserRepository;
@@ -12,6 +13,7 @@ use App\Service\RedisService;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
 use Predis\Client;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class RegistryOnlineUserCommandTest
@@ -20,6 +22,11 @@ use Predis\Client;
 class RegistryOnlineUserHandlerTest extends TestCase
 {
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
+    /**
+     * @var bool
+     */
+    private $result;
 
     public function testExecute(): void
     {
@@ -58,21 +65,28 @@ class RegistryOnlineUserHandlerTest extends TestCase
             return false;
         }))->andReturn($client);
 
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->withArgs(function (string $name, $event) {
+           if ($event instanceof RegistryOnlineUserEvent && $name === RegistryOnlineUserEvent::NAME) {
+               $this->result = $event->isResult();
+               return true;
+           }
+
+           return false;
+        });
+
         $registryOnlineUserCommand = new RegistryOnlineUserCommand(['userId' => 'userIdValue'], 2);
 
-        $registryOnlineUserHandler = new RegistryOnlineUserHandler($userRepository, $redisService);
+        $registryOnlineUserHandler = new RegistryOnlineUserHandler($userRepository, $redisService, $eventDispatcher);
 
         $registryOnlineUserHandler->handle($registryOnlineUserCommand);
-        $result = $registryOnlineUserHandler->getResult();
-        $this->assertTrue($result);
+        $this->assertTrue($this->result);
 
         $registryOnlineUserHandler->handle($registryOnlineUserCommand);
-        $result = $registryOnlineUserHandler->getResult();
-        $this->assertFalse($result);
+        $this->assertFalse($this->result);
 
         $registryOnlineUserHandler->handle($registryOnlineUserCommand);
-        $result = $registryOnlineUserHandler->getResult();
-        $this->assertFalse($result);
+        $this->assertFalse($this->result);
     }
 
     public function testUserNotFoundException(): void
@@ -94,9 +108,22 @@ class RegistryOnlineUserHandlerTest extends TestCase
 
         $registryOnlineUserCommand = new RegistryOnlineUserCommand(['userId' => 'userIdValue'], 2);
 
-        $registryOnlineUserHandler = new RegistryOnlineUserHandler($userRepository, $redisService);
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->withArgs(function (string $name, $event) {
+            if ($event instanceof RegistryOnlineUserEvent && $name === RegistryOnlineUserEvent::NAME) {
+                $this->result = $event->isResult();
+                return true;
+            }
+
+            return false;
+        });
+
+        $registryOnlineUserHandler = new RegistryOnlineUserHandler(
+            $userRepository,
+            $redisService,
+            $eventDispatcher
+        );
         $registryOnlineUserHandler->handle($registryOnlineUserCommand);
-        $result = $registryOnlineUserHandler->getResult();
-        $this->assertFalse($result);
+        $this->assertFalse($this->result);
     }
 }
