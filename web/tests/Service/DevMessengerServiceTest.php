@@ -10,9 +10,11 @@ use App\Command\Console\DevMessenger\DeleteOnlineUserCommand;
 use App\Command\Console\DevMessenger\RegistryOnlineUserCommand;
 use App\Event\AddMessageEvent;
 use App\Event\AddNotificationNewMessageEvent;
+use App\Event\CreateConversationEvent;
 use App\Event\RegistryOnlineUserEvent;
 use App\EventListener\AddMessageEventListener;
 use App\EventListener\AddNotificationNewMessageEventListener;
+use App\EventListener\CreateConversationEventListener;
 use App\EventListener\RegistryOnlineUserEventListener;
 use App\Service\CommandService;
 use App\Service\DevMessengerService;
@@ -332,11 +334,21 @@ class DevMessengerServiceTest extends TestCase
 
             return false;
         }))->once();
-        $this->commandService->shouldReceive('getResult')->once()->andReturn([
+
+        $createConversationListener = Mockery::mock('overload:' . CreateConversationEventListener::class);
+        $createConversationListener->shouldReceive('getConversation')->once()->andReturn([
             'result' => true,
             'conversationId' => 'conversationIdValue',
             'fullName' => 'fullNameReceiveUser'
         ]);
+
+        $this->eventDispatcher->shouldReceive('addListener')->withArgs(function (string $name,array $args) {
+            if ($args[0] instanceof CreateConversationEventListener && $name === CreateConversationEvent::NAME) {
+                return true;
+            }
+
+            return false;
+        })->once();
 
         $this->devMessengerService->onMessage($conn, json_encode([
             'type' => 'create',
