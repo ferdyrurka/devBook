@@ -59,7 +59,6 @@ class DevMessengerServiceTest extends TestCase
     /**
      * @param bool $registryResult
      * @param int $handleTimes
-     * @throws \App\Exception\GetResultUndefinedException
      * @throws \App\Exception\LackHandlerToCommandException
      * @runInSeparateProcess
      * @dataProvider OnMessageRegistryData
@@ -117,7 +116,6 @@ class DevMessengerServiceTest extends TestCase
      * @param array $addMessage
      * @param bool $addNotification
      * @param array $times
-     * @throws \App\Exception\GetResultUndefinedException
      * @throws \App\Exception\LackHandlerToCommandException
      * @runInSeparateProcess
      * @dataProvider onMessageSendMessageData
@@ -138,8 +136,7 @@ class DevMessengerServiceTest extends TestCase
 
         // Event
 
-        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
-        $eventDispatcher->shouldReceive('addListener')->withArgs(function (string $name, array $listener) {
+        $this->eventDispatcher->shouldReceive('addListener')->withArgs(function (string $name, array $listener) {
             if (
                 ($listener[0] instanceof AddMessageEventListener && $name === AddMessageEvent::NAME) ||
                 (
@@ -175,8 +172,7 @@ class DevMessengerServiceTest extends TestCase
 
         //Send message
 
-        $commandService = Mockery::mock(CommandService::class);
-        $commandService->shouldReceive('handle')->with(Mockery::on(function ($command) {
+        $this->commandService->shouldReceive('handle')->with(Mockery::on(function ($command) {
 
             if ($command instanceof AddMessageCommand) {
                 $array = $command->getMessage();
@@ -197,9 +193,8 @@ class DevMessengerServiceTest extends TestCase
             return false;
         }))->times($times['handle']);
 
-        $devMessengerService = new DevMessengerService($commandService, $eventDispatcher);
-        $devMessengerService->onOpen($conn);
-        $devMessengerService->onMessage($conn, json_encode($onMessage));
+        $this->devMessengerService->onOpen($conn);
+        $this->devMessengerService->onMessage($conn, json_encode($onMessage));
     }
 
     public function onMessageSendMessageData(): array
@@ -306,6 +301,10 @@ class DevMessengerServiceTest extends TestCase
         ];
     }
 
+    /**
+     * @throws \App\Exception\LackHandlerToCommandException
+     * @runInSeparateProcess
+     */
     public function testSendMessageCreate(): void
     {
         $conn = Mockery::mock(ConnectionInterface::class);
