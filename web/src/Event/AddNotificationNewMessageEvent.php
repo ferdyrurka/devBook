@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class AddNotificationNewMessageEvent extends Event
 {
-    public const NAME = 'add.notification.new.message';
+    public const NAME = 'added.notification.new.message';
 
     /**
      * @var boolean

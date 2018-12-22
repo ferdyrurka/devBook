@@ -14,7 +14,7 @@ class SearchFriendsEvent extends Event
     /**
      * @var string
      */
-    public const NAME = 'search.friends';
+    public const NAME = 'searched.friends';
 
     /**
      * @var array

@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class RegistryOnlineUserEvent extends Event
 {
-    public const NAME = 'registry.online.user';
+    public const NAME = 'registered.user';
 
     /**
      * @var bool

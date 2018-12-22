@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class AddMessageEvent extends Event
 {
-    public const NAME = 'add.message';
+    public const NAME = 'added.message';
 
     /**
      * @var array

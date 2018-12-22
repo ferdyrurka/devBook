@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class CreateConversationEvent extends Event
 {
-    public const NAME = 'create.conversation';
+    public const NAME = 'created.conversation';
 
     /**
      * @var array
