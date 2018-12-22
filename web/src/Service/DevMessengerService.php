@@ -86,18 +86,7 @@ class DevMessengerService implements MessageComponentInterface
              * Register in array Users
              */
             case 'registry':
-                $registryOnlineUserListener = new RegistryOnlineUserEventListener();
-                $this->eventDispatcher->addListener(
-                    RegistryOnlineUserEvent::NAME,
-                    [$registryOnlineUserListener, 'setResult']
-                );
-
-                $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
-                $this->commandService->handle($registryOnlineUserCommand);
-
-                if (!$registryOnlineUserListener->isResult()) {
-                    $this->onClose($from);
-                }
+                $this->registryUser($msg, $from);
 
                 break;
 
@@ -110,47 +99,7 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $addMessageEventListener = new AddMessageEventListener();
-                $addNotificationNewMessageListener = new AddNotificationNewMessageEventListener();
-                $this->eventDispatcher->addListener(AddMessageEvent::NAME, [$addMessageEventListener, 'setSendUsers']);
-                $this->eventDispatcher->addListener(AddNotificationNewMessageEvent::NAME, [$addNotificationNewMessageListener, 'setSend']);
-
-                $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
-                $this->commandService->handle($addMessageCommand);
-
-                $usersConnIdAndSendNotification = $addMessageEventListener->getSendUsers();
-
-                if (isset($usersConnIdAndSendNotification['notification'])) {
-                    $fromUserToken = htmlspecialchars($msg['userId']);
-
-                    /**
-                     * Send notification
-                     */
-                    foreach ($usersConnIdAndSendNotification['notification'] as $userToSendNotificationToken) {
-                        $addNotificationCommand = new AddNotificationNewMessageCommand($userToSendNotificationToken, $fromUserToken);
-                        $this->commandService->handle($addNotificationCommand);
-
-                        if ($addNotificationNewMessageListener->isSend()) {
-                            break;
-                        }
-                    }
-
-                    /**
-                     * Delete notification
-                     */
-                    unset($usersConnIdAndSendNotification['notification']);
-                }
-
-                foreach ($usersConnIdAndSendNotification as $userConnId) {
-                    /**
-                     * Send message using WebSocket because user is online
-                     */
-                    $this->users[$userConnId]->send(json_encode([
-                        'type' => 'message',
-                        'conversationId' => htmlspecialchars($msg['conversationId']),
-                        'message' => htmlspecialchars($msg['message'])
-                    ]));
-                }
+                $this->saveMessage($msg, $from);
 
                 break;
 
@@ -163,25 +112,7 @@ class DevMessengerService implements MessageComponentInterface
                     break;
                 }
 
-                $createConversationEvent = new CreateConversationEventListener();
-                $this->eventDispatcher->addListener(
-                    CreateConversationEvent::NAME,
-                    [$createConversationEvent, 'setConversation']
-                );
-
-                $createConversationCommand = new CreateConversationCommand(
-                    htmlspecialchars($msg['userId']),
-                    htmlspecialchars($msg['receiveId'])
-                );
-                $this->commandService->handle($createConversationCommand);
-
-                $result = $createConversationEvent->getConversation();
-
-                if (!empty($result)) {
-                    $result['type'] = 'create';
-                }
-
-                $from->send(json_encode($result));
+                $this->createConversation($msg, $from);
 
                 break;
             default:
@@ -212,5 +143,104 @@ class DevMessengerService implements MessageComponentInterface
         echo "An error has occurred: {$e->getMessage()} \n";
 
         $conn->close();
+    }
+
+    /**
+     * @param array $msg
+     * @param ConnectionInterface $from
+     * @throws \App\Exception\LackHandlerToCommandException
+     */
+    private function registryUser(array $msg, ConnectionInterface $from): void
+    {
+        $registryOnlineUserListener = new RegistryOnlineUserEventListener();
+        $this->eventDispatcher->addListener(
+            RegistryOnlineUserEvent::NAME,
+            [$registryOnlineUserListener, 'setResult']
+        );
+
+        $registryOnlineUserCommand = new RegistryOnlineUserCommand($msg, $from->resourceId);
+        $this->commandService->handle($registryOnlineUserCommand);
+
+        if (!$registryOnlineUserListener->isResult()) {
+            $this->onClose($from);
+        }
+    }
+
+    /**
+     * @param array $msg
+     * @param ConnectionInterface $from
+     * @throws \App\Exception\LackHandlerToCommandException
+     */
+    private function saveMessage(array $msg, ConnectionInterface $from): void
+    {
+        $addMessageEventListener = new AddMessageEventListener();
+        $addNotificationNewMessageListener = new AddNotificationNewMessageEventListener();
+        $this->eventDispatcher->addListener(AddMessageEvent::NAME, [$addMessageEventListener, 'setSendUsers']);
+        $this->eventDispatcher->addListener(AddNotificationNewMessageEvent::NAME, [$addNotificationNewMessageListener, 'setSend']);
+
+        $addMessageCommand = new AddMessageCommand($msg, $from->resourceId);
+        $this->commandService->handle($addMessageCommand);
+
+        $usersConnIdAndSendNotification = $addMessageEventListener->getSendUsers();
+
+        if (isset($usersConnIdAndSendNotification['notification'])) {
+            $fromUserToken = htmlspecialchars($msg['userId']);
+
+            /**
+             * Send notification
+             */
+            foreach ($usersConnIdAndSendNotification['notification'] as $userToSendNotificationToken) {
+                $addNotificationCommand = new AddNotificationNewMessageCommand($userToSendNotificationToken, $fromUserToken);
+                $this->commandService->handle($addNotificationCommand);
+
+                if ($addNotificationNewMessageListener->isSend()) {
+                    break;
+                }
+            }
+
+            /**
+             * Delete notification
+             */
+            unset($usersConnIdAndSendNotification['notification']);
+        }
+
+        foreach ($usersConnIdAndSendNotification as $userConnId) {
+            /**
+             * Send message using WebSocket because user is online
+             */
+            $this->users[$userConnId]->send(json_encode([
+                'type' => 'message',
+                'conversationId' => htmlspecialchars($msg['conversationId']),
+                'message' => htmlspecialchars($msg['message'])
+            ]));
+        }
+    }
+
+    /**
+     * @param array $msg
+     * @param ConnectionInterface $from
+     * @throws \App\Exception\LackHandlerToCommandException
+     */
+    private function createConversation(array $msg, ConnectionInterface $from): void
+    {
+        $createConversationEvent = new CreateConversationEventListener();
+        $this->eventDispatcher->addListener(
+            CreateConversationEvent::NAME,
+            [$createConversationEvent, 'setConversation']
+        );
+
+        $createConversationCommand = new CreateConversationCommand(
+            htmlspecialchars($msg['userId']),
+            htmlspecialchars($msg['receiveId'])
+        );
+        $this->commandService->handle($createConversationCommand);
+
+        $result = $createConversationEvent->getConversation();
+
+        if (!empty($result)) {
+            $result['type'] = 'create';
+        }
+
+        $from->send(json_encode($result));
     }
 }
