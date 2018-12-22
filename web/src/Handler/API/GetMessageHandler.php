@@ -8,7 +8,7 @@ use App\Event\GetMessageEvent;
 use App\Exception\InvalidException;
 use App\Handler\HandlerInterface;
 use App\Repository\MessageRepository;
-use App\Util\ConversationIdValidator;
+use App\Service\Validator\ConversationIdValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
