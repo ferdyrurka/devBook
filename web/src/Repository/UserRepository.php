@@ -67,7 +67,7 @@ class UserRepository extends ServiceEntityRepository
      * @throws UserNotFoundException
      * @return User
      */
-    public function getOneByPrivateWebTokenOrMobileToken(string $token): User
+    public function getOneByPrivateTokens(string $token): User
     {
         $user = $this->getEntityManager()->createQuery('
             SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token  OR u.privateMobileToken = :token

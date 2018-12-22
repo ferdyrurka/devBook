@@ -30,7 +30,7 @@ class AddNotificationHandlerTest extends TestCase
         $user = Mockery::mock(User::class);
 
         $userRepository = Mockery::mock(UserRepository::class);
-        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->times(2)->withArgs(['token'])->andReturn($user);
+        $userRepository->shouldReceive('getOneByPrivateTokens')->times(2)->withArgs(['token'])->andReturn($user);
 
         $amqpMessage = Mockery::mock(AMQPMessage::class);
         $amqpMessage->body = json_encode([

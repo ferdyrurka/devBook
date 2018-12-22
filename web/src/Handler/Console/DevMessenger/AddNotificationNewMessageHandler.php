@@ -43,7 +43,7 @@ class AddNotificationNewMessageHandler implements HandlerInterface
      */
     public function handle(CommandInterface $addNotificationNewMessageCommand): void
     {
-        $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($addNotificationNewMessageCommand->getUserFromToken());
+        $user = $this->userRepository->getOneByPrivateTokens($addNotificationNewMessageCommand->getUserFromToken());
         $userToken = $user->getUserTokenReferences();
         $userSendNotification = $addNotificationNewMessageCommand->getUserToken();
 

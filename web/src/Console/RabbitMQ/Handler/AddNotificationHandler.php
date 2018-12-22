@@ -57,7 +57,7 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
             );
         }
 
-        $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($message['userToken']);
+        $user = $this->userRepository->getOneByPrivateTokens($message['userToken']);
 
         $notification = new Notification();
         $notification->setMessage(htmlspecialchars($message['notificationMessage']));

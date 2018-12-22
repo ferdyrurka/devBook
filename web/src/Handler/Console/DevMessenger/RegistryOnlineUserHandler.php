@@ -60,7 +60,7 @@ class RegistryOnlineUserHandler implements HandlerInterface
         $userToken = htmlspecialchars($message['userId']);
 
         try {
-            $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($userToken);
+            $user = $this->userRepository->getOneByPrivateTokens($userToken);
         } catch (UserNotFoundException $exception) {
             $this->sendNotification(false);
             return;

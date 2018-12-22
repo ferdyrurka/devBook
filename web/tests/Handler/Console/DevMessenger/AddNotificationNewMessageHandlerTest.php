@@ -44,7 +44,7 @@ class AddNotificationNewMessageHandlerTest extends TestCase
         $user->shouldReceive('getSurname')->once()->andReturn('Surname');
 
         $userRepository = Mockery::mock(UserRepository::class);
-        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->withArgs(['fromUserToken'])->andReturn($user);
+        $userRepository->shouldReceive('getOneByPrivateTokens')->withArgs(['fromUserToken'])->andReturn($user);
 
         $sendComposite = Mockery::mock('overload:' . SendComposite::class);
         $sendComposite->shouldReceive('add')->withArgs([AddNotification::class])->once();
@@ -84,7 +84,7 @@ class AddNotificationNewMessageHandlerTest extends TestCase
         $user->shouldReceive('getUserTokenReferences')->once()->andReturn($userToken);
 
         $userRepository = Mockery::mock(UserRepository::class);
-        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->withArgs(['fromUserToken'])->andReturn($user);
+        $userRepository->shouldReceive('getOneByPrivateTokens')->withArgs(['fromUserToken'])->andReturn($user);
 
         $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
         $eventDispatcher->shouldReceive('dispatch')->once()->withArgs(

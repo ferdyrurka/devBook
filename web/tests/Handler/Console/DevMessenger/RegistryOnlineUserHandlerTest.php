@@ -34,7 +34,7 @@ class RegistryOnlineUserHandlerTest extends TestCase
         $user->shouldReceive('getId')->once()->andReturn(1);
 
         $userRepository = Mockery::mock(UserRepository::class);
-        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->andReturn($user)->times(3)
+        $userRepository->shouldReceive('getOneByPrivateTokens')->andReturn($user)->times(3)
             ->withArgs(['userIdValue']);
 
         $client = Mockery::mock(Client::class);
@@ -103,7 +103,7 @@ class RegistryOnlineUserHandlerTest extends TestCase
         }))->andReturn($client);
 
         $userRepository = Mockery::mock(UserRepository::class);
-        $userRepository->shouldReceive('getOneByPrivateWebTokenOrMobileToken')->once()->withArgs(['userIdValue'])
+        $userRepository->shouldReceive('getOneByPrivateTokens')->once()->withArgs(['userIdValue'])
             ->andThrow(new UserNotFoundException());
 
         $registryOnlineUserCommand = new RegistryOnlineUserCommand(['userId' => 'userIdValue'], 2);
