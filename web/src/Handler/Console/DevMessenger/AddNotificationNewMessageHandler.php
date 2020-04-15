@@ -6,8 +6,10 @@ namespace App\Handler\Console\DevMessenger;
 use App\Command\CommandInterface;
 use App\Composite\RabbitMQ\Send\AddNotification;
 use App\Composite\RabbitMQ\SendComposite;
+use App\Event\AddNotificationNewMessageEvent;
 use App\Handler\HandlerInterface;
 use App\Repository\UserRepository;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class AddNotificationNewMessageHandler
@@ -16,28 +18,37 @@ use App\Repository\UserRepository;
 class AddNotificationNewMessageHandler implements HandlerInterface
 {
     /**
-     * @var boolean
-     */
-    private $result = true;
-
-    /**
      * @var UserRepository
      */
     private $userRepository;
 
-    public function __construct(UserRepository $userRepository)
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
+     * AddNotificationNewMessageHandler constructor.
+     * @param UserRepository $userRepository
+     * @param EventDispatcherInterface $eventDispatcher
+     */
+    public function __construct(UserRepository $userRepository, EventDispatcherInterface $eventDispatcher)
     {
         $this->userRepository = $userRepository;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * @param CommandInterface $addNotificationNewMessageCommand
+     */
     public function handle(CommandInterface $addNotificationNewMessageCommand): void
     {
-        $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($addNotificationNewMessageCommand->getUserFromToken());
+        $user = $this->userRepository->getOneByPrivateTokens($addNotificationNewMessageCommand->getUserFromToken());
         $userToken = $user->getUserTokenReferences();
         $userSendNotification = $addNotificationNewMessageCommand->getUserToken();
 
         if ($userToken->getPrivateWebToken() === $userSendNotification || $userToken->getPrivateMobileToken() === $userSendNotification) {
-            $this->result = false;
+            $this->sendEvent(false);
             return;
         }
 
@@ -47,14 +58,17 @@ class AddNotificationNewMessageHandler implements HandlerInterface
             $userSendNotification
         ));
         $sendComposite->run();
+
+        $this->sendEvent(true);
     }
 
     /**
-     * @return bool
+     * @param bool $result
      */
-    public function getResult(): bool
+    private function sendEvent(bool $result): void
     {
-        return $this->result;
+        $event = new AddNotificationNewMessageEvent($result);
+        $this->eventDispatcher->dispatch(AddNotificationNewMessageEvent::NAME, $event);
     }
 }
 

@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace App\Handler\Console\DevMessenger;
 
 use App\Command\CommandInterface;
+use App\Event\RegistryOnlineUserEvent;
 use App\Exception\UserNotFoundException;
 use App\Handler\HandlerInterface;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class RegistryOnlineUserCommand
@@ -27,19 +29,24 @@ class RegistryOnlineUserHandler implements HandlerInterface
     private $userRepository;
 
     /**
-     * @var bool
+     * @var
      */
-    private $result = true;
+    private $eventDispatcher;
 
     /**
-     * RegistryOnlineUserCommand constructor.
+     * RegistryOnlineUserHandler constructor.
      * @param UserRepository $userRepository
      * @param RedisService $redisService
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(UserRepository $userRepository, RedisService $redisService)
-    {
+    public function __construct(
+        UserRepository $userRepository,
+        RedisService $redisService,
+        EventDispatcherInterface $eventDispatcher
+    ) {
         $this->redisService = $redisService;
         $this->userRepository = $userRepository;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -53,9 +60,9 @@ class RegistryOnlineUserHandler implements HandlerInterface
         $userToken = htmlspecialchars($message['userId']);
 
         try {
-            $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($userToken);
+            $user = $this->userRepository->getOneByPrivateTokens($userToken);
         } catch (UserNotFoundException $exception) {
-            $this->result = false;
+            $this->sendNotification(false);
             return;
         }
 
@@ -66,8 +73,7 @@ class RegistryOnlineUserHandler implements HandlerInterface
         $connId = $registryUserCommand->getConnId();
 
         if ($userByConn->exists($connId) > 0) {
-            $this->result = false;
-
+            $this->sendNotification(false);
             return;
         }
 
@@ -87,13 +93,16 @@ class RegistryOnlineUserHandler implements HandlerInterface
             'connId' => $connId,
             'id' => $user->getId()
         ]));
+
+        $this->sendNotification(true);
     }
 
     /**
-     * @return bool
+     * @param bool $result
      */
-    public function getResult(): bool
+    private function sendNotification(bool $result): void
     {
-        return $this->result;
+        $event = new RegistryOnlineUserEvent($result);
+        $this->eventDispatcher->dispatch(RegistryOnlineUserEvent::NAME, $event);
     }
 }

@@ -56,4 +56,26 @@ class ConversationRepository extends ServiceEntityRepository
             ->setParameter(':conversationId', $conversationId)
             ->execute();
     }
+
+    /**
+     * @param Conversation $conversation
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function save(Conversation $conversation): void
+    {
+        $this->getEntityManager()->persist($conversation);
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * @param Conversation $conversation
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function remove(Conversation $conversation): void
+    {
+        $this->getEntityManager()->remove($conversation);
+        $this->getEntityManager()->flush();
+    }
 }

@@ -8,6 +8,7 @@ use App\Exception\UserNotFoundException;
 use App\Service\CommandService;
 use App\Command\API\GetConversationListCommand;
 use App\Tests\WebTestCase;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Response;
 use \Mockery;
 
@@ -51,7 +52,7 @@ class ConversationControllerTest extends WebTestCase
         $this->expectException(UserNotFoundException::class);
         $conversationController->getConversationListAction(
             Mockery::mock(CommandService::class),
-            Mockery::mock(GetConversationListCommand::class)
+            Mockery::mock(EventDispatcherInterface::class)
         );
     }
 }

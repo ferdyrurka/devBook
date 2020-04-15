@@ -50,6 +50,7 @@ class UserRepository extends ServiceEntityRepository
         $user = $this->getEntityManager()->createQuery('
             SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.publicToken = :token 
         ')
+            ->setMaxResults(1)
             ->setParameter(':token', $token)
             ->execute()
         ;
@@ -66,11 +67,12 @@ class UserRepository extends ServiceEntityRepository
      * @throws UserNotFoundException
      * @return User
      */
-    public function getOneByPrivateWebTokenOrMobileToken(string $token): User
+    public function getOneByPrivateTokens(string $token): User
     {
         $user = $this->getEntityManager()->createQuery('
             SELECT p FROM App:User p JOIN p.userTokenReferences u WHERE u.privateWebToken = :token  OR u.privateMobileToken = :token
         ')
+            ->setMaxResults(1)
             ->setParameter(':token', $token)
             ->execute()
         ;
@@ -124,5 +126,27 @@ class UserRepository extends ServiceEntityRepository
         }
 
         return 0;
+    }
+
+    /**
+     * @param User $user
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function save(User $user): void
+    {
+        $this->getEntityManager()->persist($user);
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * @param User $user
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function remove(User $user): void
+    {
+        $this->getEntityManager()->remove($user);
+        $this->getEntityManager()->flush();
     }
 }

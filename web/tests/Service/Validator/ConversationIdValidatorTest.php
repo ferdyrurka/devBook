@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\Util;
+namespace App\Tests\Service\Validator;
 
-use App\Util\ConversationIdValidator;
+use App\Service\Validator\ConversationIdValidator;
 use PHPUnit\Framework\TestCase;
+
 
 /**
  * Class MessageIdValidatorTest

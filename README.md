@@ -55,11 +55,15 @@
 
 - At the beginning of the project I implemented the Command pattern incorrectly.
 - I did not look at the validation of the entity before writing to the database.
+- I calculated time using time zones and I should convert it into
+  UTC time zone.
 
 ###### PL
 
 - Na początku projektu źle zaimplementowałem wzorzec Command
 - Niedopilnowałem walidacji encji przed zapisem do bazy danych.
+- Przeliczałem czas używając stref czasowych a powinnienem przeliczać to w 
+strefie czasowej UTC.
 
 ### How to run project
 

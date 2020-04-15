@@ -6,6 +6,7 @@ namespace App\Handler\Console\DevMessenger;
 use App\Command\CommandInterface;
 use App\Entity\Conversation;
 use App\Entity\Message;
+use App\Event\AddMessageEvent;
 use App\Exception\ConversationNotExistException;
 use App\Exception\NotAuthorizationUUIDException;
 use App\Exception\UserNotFoundException;
@@ -13,8 +14,9 @@ use App\Exception\UserNotFoundInConversationException;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
 use App\Repository\ConversationRepository;
+use App\Repository\MessageRepository;
 use App\Service\RedisService;
-use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -25,9 +27,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AddMessageHandler implements HandlerInterface
 {
     /**
-     * @var EntityManagerInterface
+     * @var MessageRepository
      */
-    private $entityManager;
+    private $messageRepository;
 
     /**
      * @var RedisService
@@ -40,31 +42,33 @@ class AddMessageHandler implements HandlerInterface
     private $conversationRepository;
 
     /**
-     * @var array
-     */
-    private $result;
-
-    /**
      * @var ValidatorInterface
      */
     private $validator;
 
     /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * AddMessageHandler constructor.
-     * @param EntityManagerInterface $entityManager
+     * @param MessageRepository $messageRepository
      * @param ConversationRepository $conversationRepository
      * @param RedisService $redisService
      * @param ValidatorInterface $validator
      */
     public function __construct(
-        EntityManagerInterface $entityManager,
+        MessageRepository $messageRepository,
         ConversationRepository $conversationRepository,
         RedisService $redisService,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        EventDispatcherInterface $eventDispatcher
     ) {
+        $this->eventDispatcher = $eventDispatcher;
         $this->redisService = $redisService;
         $this->conversationRepository = $conversationRepository;
-        $this->entityManager = $entityManager;
+        $this->messageRepository = $messageRepository;
         $this->validator = $validator;
     }
 
@@ -195,6 +199,8 @@ class AddMessageHandler implements HandlerInterface
      * @throws NotAuthorizationUUIDException
      * @throws UserNotFoundInConversationException
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function handle(CommandInterface $addMessageCommand): void
     {
@@ -257,7 +263,7 @@ class AddMessageHandler implements HandlerInterface
             (int) $user['id']
         );
 
-        $this->result = $this->getReceiveUserMessageOrSendNotification(
+        $result = $this->getReceiveUserMessageOrSendNotification(
             $conversation,
             $userPrivateToken
         );
@@ -277,16 +283,9 @@ class AddMessageHandler implements HandlerInterface
             throw new ValidateEntityUnsuccessfulException('Failed validation entity Message in: ' . \get_class($this));
         }
 
-        $this->entityManager->persist($messageEntity);
-        $this->entityManager->flush();
-    }
+        $this->messageRepository->save($messageEntity);
 
-    /**
-     * @return array
-     * Result is array users connId.
-     */
-    public function getResult(): array
-    {
-        return $this->result;
+        $event = new AddMessageEvent($result);
+        $this->eventDispatcher->dispatch(AddMessageEvent::NAME, $event);
     }
 }

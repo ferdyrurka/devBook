@@ -6,8 +6,8 @@ namespace App\Console\RabbitMQ\Handler;
 use App\Entity\Notification;
 use App\Exception\NotFullMessageException;
 use App\Exception\ValidateEntityUnsuccessfulException;
+use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -19,9 +19,9 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
     private $validator;
 
     /**
-     * @var EntityManagerInterface
+     * @var NotificationRepository
      */
-    private $entityManager;
+    private $notificationRepository;
 
     /**
      * @var UserRepository
@@ -30,11 +30,11 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
 
     public function __construct(
         ValidatorInterface $validator,
-        EntityManagerInterface $entityManager,
+        NotificationRepository $notificationRepository,
         UserRepository $userRepository
     ) {
         $this->validator = $validator;
-        $this->entityManager = $entityManager;
+        $this->notificationRepository = $notificationRepository;
         $this->userRepository = $userRepository;
     }
 
@@ -42,6 +42,8 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
      * @param AMQPMessage $jsonMessage
      * @throws NotFullMessageException
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function handle(AMQPMessage $jsonMessage): void
     {
@@ -55,7 +57,7 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
             );
         }
 
-        $user = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($message['userToken']);
+        $user = $this->userRepository->getOneByPrivateTokens($message['userToken']);
 
         $notification = new Notification();
         $notification->setMessage(htmlspecialchars($message['notificationMessage']));
@@ -66,8 +68,7 @@ class AddNotificationHandler extends RabbitMQHandlerAbstract
             throw new ValidateEntityUnsuccessfulException('Validate entity is failed in: ' . \get_class($this));
         }
 
-        $this->entityManager->persist($notification);
-        $this->entityManager->flush();
+        $this->notificationRepository->save($notification);
     }
 }
 

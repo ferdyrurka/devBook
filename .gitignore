@@ -3,3 +3,5 @@ web/var/
 web/vendor/
 web/composer.lock
 web/symfony.lock
+web/.env
+web/phpunit.xml

@@ -4,9 +4,10 @@ declare(strict_types=1);
 namespace App\Handler\API;
 
 use App\Command\CommandInterface;
-use App\Entity\User;
+use App\Event\GetConversationListEvent;
 use App\Handler\HandlerInterface;
 use App\Repository\MessageRepository;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class GetConversationListCommand
@@ -21,18 +22,20 @@ class GetConversationListHandler implements HandlerInterface
     private $messageRepository;
 
     /**
-     * GetConversationListCommand constructor.
-     * @param MessageRepository $messageRepository
+     * @var EventDispatcherInterface
      */
-    public function __construct(MessageRepository $messageRepository)
-    {
-        $this->messageRepository = $messageRepository;
-    }
+    private $eventDispatcher;
 
     /**
-     * @var array
+     * GetConversationListHandler constructor.
+     * @param MessageRepository $messageRepository
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    private $result = [];
+    public function __construct(MessageRepository $messageRepository, EventDispatcherInterface $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
+        $this->messageRepository = $messageRepository;
+    }
 
     /**
      * @param CommandInterface $getConversationListCommand
@@ -43,6 +46,7 @@ class GetConversationListHandler implements HandlerInterface
         $user = $getConversationListCommand->getUser();
         $conversations = $user->getConversationReferences()->getValues();
 
+        $result = [];
         $i = 0;
 
         foreach ($conversations as $conversation) {
@@ -52,7 +56,7 @@ class GetConversationListHandler implements HandlerInterface
 
             foreach ($usersConversation as $userConversation) {
                 if ($user->getId() !== $userConversation->getId()) {
-                    $this->result[$i]['fullName'] = $userConversation->getFirstName() . ' ' .
+                    $result[$i]['fullName'] = $userConversation->getFirstName() . ' ' .
                         $userConversation->getSurname()
                     ;
 
@@ -66,18 +70,13 @@ class GetConversationListHandler implements HandlerInterface
                 continue;
             }
 
-            $this->result[$i]['lastMessage'] = $message->getMessage();
-            $this->result[$i]['conversationId'] = $conversationId;
+            $result[$i]['lastMessage'] = $message->getMessage();
+            $result[$i]['conversationId'] = $conversationId;
 
             $i++;
         }
-    }
 
-    /**
-     * @return array
-     */
-    public function getResult(): array
-    {
-        return $this->result;
+        $event = new GetConversationListEvent($result);
+        $this->eventDispatcher->dispatch(GetConversationListEvent::NAME, $event);
     }
 }

@@ -5,11 +5,13 @@ namespace App\Tests\Handler\API;
 
 use App\Command\API\GetMessageCommand;
 use App\Entity\Message;
+use App\Event\GetMessageEvent;
 use App\Exception\InvalidException;
 use App\Handler\API\GetMessageHandler;
 use App\Repository\MessageRepository;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class GetMessageCommandTest
@@ -20,11 +22,16 @@ class GetMessageHandlerTest extends TestCase
     use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     /**
+     * @var array
+     */
+    private $result;
+
+    /**
      * @throws InvalidException
      */
     public function testExecute(): void
     {
-        $time = new \DateTime("now");
+        $time = new \DateTime('now');
 
         $messageReceive = Mockery::mock(Message::class);
         $messageReceive->shouldReceive('getSendUserId')->once()->andReturn(2);
@@ -44,25 +51,38 @@ class GetMessageHandlerTest extends TestCase
 
         $getMessageCommand = new GetMessageCommand(1, '8fdc55bd-6db4-46dd-8616-8dc786fe3eb0', 15);
 
-        $getMessageHandler = new GetMessageHandler($messageRepository);
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->withArgs(function (string $name, $event) {
+            if ($event instanceof GetMessageEvent && $name === GetMessageEvent::NAME) {
+                $this->result = $event->getMessages();
+
+                return true;
+            }
+
+            return false;
+        })->once();
+
+        $getMessageHandler = new GetMessageHandler($messageRepository, $eventDispatcher);
         $getMessageHandler->handle($getMessageCommand);
 
-        $result = $getMessageHandler->getResult();
-        $this->assertEquals('Message receive', $result[0]['message']);
-        $this->assertEquals('Message send', $result[1]['message']);
+        $this->assertEquals('Message receive', $this->result[0]['message']);
+        $this->assertEquals('Message send', $this->result[1]['message']);
 
-        $this->assertEquals('Receive', $result[0]['template']);
-        $this->assertEquals('From', $result[1]['template']);
+        $this->assertEquals('Receive', $this->result[0]['template']);
+        $this->assertEquals('From', $this->result[1]['template']);
 
-        $this->assertEquals($time->format('Y-m-d H:i:s'), $result[0]['date']);
-        $this->assertEquals($time->format('Y-m-d H:i:s'), $result[1]['date']);
+        $this->assertEquals($time->format('Y-m-d H:i:s'), $this->result[0]['date']);
+        $this->assertEquals($time->format('Y-m-d H:i:s'), $this->result[1]['date']);
     }
 
     public function testInvalidArguments(): void
     {
         $messageRepository = Mockery::mock(MessageRepository::class);
 
-        $getMessageHandler = new GetMessageHandler($messageRepository);
+        $getMessageHandler = new GetMessageHandler(
+            $messageRepository,
+            Mockery::mock(EventDispatcherInterface::class)
+        );
 
         $getMessageCommand = new GetMessageCommand(1, 'FAILED', 0);
 

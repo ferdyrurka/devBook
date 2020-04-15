@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Message;
-use App\NullObject\Repository\NullMessageRepository;
+use App\Repository\NullObject\NullMessageRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Common\Persistence\ManagerRegistry;
 
@@ -63,5 +63,27 @@ class MessageRepository extends ServiceEntityRepository
         }
 
         return $message;
+    }
+
+    /**
+     * @param Message $message
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function save(Message $message): void
+    {
+        $this->getEntityManager()->persist($message);
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * @param Message $message
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     */
+    public function remove(Message $message): void
+    {
+        $this->getEntityManager()->remove($message);
+        $this->getEntityManager()->flush();
     }
 }

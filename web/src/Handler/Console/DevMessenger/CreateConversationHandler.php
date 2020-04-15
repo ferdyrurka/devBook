@@ -5,13 +5,15 @@ namespace App\Handler\Console\DevMessenger;
 
 use App\Command\CommandInterface;
 use App\Entity\Conversation;
+use App\Event\CreateConversationEvent;
 use App\Exception\InvalidException;
 use App\Exception\ValidateEntityUnsuccessfulException;
 use App\Handler\HandlerInterface;
+use App\Repository\ConversationRepository;
 use App\Repository\UserRepository;
 use App\Service\RedisService;
-use Doctrine\ORM\EntityManagerInterface;
 use Predis\Client;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -27,9 +29,9 @@ class CreateConversationHandler implements HandlerInterface
     private $userRepository;
 
     /**
-     * @var EntityManagerInterface
+     * @var ConversationRepository
      */
-    private $entityManager;
+    private $conversationRepository;
 
     /**
      * @var Client
@@ -37,32 +39,35 @@ class CreateConversationHandler implements HandlerInterface
     private $redis;
 
     /**
-     * @var array
-     */
-    private $result;
-
-    /**
      * @var ValidatorInterface
      */
     private $validator;
 
     /**
-     * CreateConversationCommand constructor.
-     * @param EntityManagerInterface $entityManager
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
+     * CreateConversationHandler constructor.
+     * @param ConversationRepository $conversationRepository
      * @param UserRepository $userRepository
      * @param RedisService $redis
-     * @param $validator
+     * @param ValidatorInterface $validator
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
-        EntityManagerInterface $entityManager,
+        ConversationRepository $conversationRepository,
         UserRepository $userRepository,
         RedisService $redis,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->redis = $redis;
         $this->validator = $validator;
         $this->userRepository = $userRepository;
-        $this->entityManager = $entityManager;
+        $this->conversationRepository = $conversationRepository;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -83,14 +88,13 @@ class CreateConversationHandler implements HandlerInterface
         }
 
         $receiveUser = $this->userRepository->getOneByPublicToken($receiveToken);
-        $sendUser = $this->userRepository->getOneByPrivateWebTokenOrMobileToken($sendToken);
+        $sendUser = $this->userRepository->getOneByPrivateTokens($sendToken);
 
         if ($this->userRepository->getCountConversationByUsersId(
             $sendUser->getId(),
             $receiveUser->getId()
         ) > 0 ) {
-            $this->result['result'] = false;
-
+            $this->sendEvent(['result' => false]);
             return;
         }
 
@@ -112,8 +116,7 @@ class CreateConversationHandler implements HandlerInterface
             );
         }
 
-        $this->entityManager->persist($conversation);
-        $this->entityManager->flush();
+        $this->conversationRepository->save($conversation);
 
         #Redis
 
@@ -131,18 +134,16 @@ class CreateConversationHandler implements HandlerInterface
             $usersToken
         ]));
 
-        $this->result = [
+        $this->sendEvent([
             'fullName' => $receiveUser->getFirstName() . ' ' . $receiveUser->getSurname(),
             'conversationId' => $conversation->getConversationId(),
             'result' => true
-        ];
+        ]);
     }
 
-    /**
-     * @return array
-     */
-    public function getResult(): array
+    private function sendEvent(array $result): void
     {
-        return $this->result;
+        $event = new CreateConversationEvent($result);
+        $this->eventDispatcher->dispatch(CreateConversationEvent::NAME, $event);
     }
 }

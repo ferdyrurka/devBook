@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Command\CommandInterface;
-use App\Exception\GetResultUndefinedException;
 use App\Exception\LackHandlerToCommandException;
 use App\Handler\HandlerInterface;
 use Psr\Container\ContainerInterface;
@@ -55,18 +54,5 @@ class CommandService
         $this->handler = $this->getHandler(\get_class($command));
 
         $this->handler->handle($command);
-    }
-
-    /**
-     * @return mixed
-     * @throws GetResultUndefinedException
-     */
-    public function getResult()
-    {
-        if (!\method_exists($this->handler, 'getResult')) {
-            throw new GetResultUndefinedException('Undefined method getResult in handler: ' . \get_class($this->handler));
-        }
-
-        return $this->handler->getResult();
     }
 }

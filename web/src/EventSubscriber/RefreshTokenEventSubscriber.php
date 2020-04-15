@@ -1,24 +1,21 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Event;
+namespace App\EventSubscriber;
 
-use App\Entity\UserToken;
 use App\Exception\ValidateEntityUnsuccessfulException;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\UserTokenRepository;
 use Ramsey\Uuid\Uuid;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Security;
-use \DateTimeZone;
 use \DateTime;
-use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * Class RefreshTokenEventListener
  */
-class RefreshTokenEventListener implements EventSubscriberInterface
+class RefreshTokenEventSubscriber implements EventSubscriberInterface
 {
     /**
      * @var Security
@@ -26,24 +23,29 @@ class RefreshTokenEventListener implements EventSubscriberInterface
     private $security;
 
     /**
-     * @var EntityManagerInterface
+     * @var UserTokenRepository
      */
-    private $entityManager;
+    private $userTokenRepository;
 
     /**
      * @var ValidatorInterface
      */
     private $validator;
 
-    public function __construct(Security $security, EntityManagerInterface $entityManager, ValidatorInterface $validator)
-    {
-        $this->entityManager = $entityManager;
+    public function __construct(
+        Security $security,
+        UserTokenRepository $userTokenRepository,
+        ValidatorInterface $validator
+    ) {
+        $this->userTokenRepository = $userTokenRepository;
         $this->security = $security;
         $this->validator = $validator;
     }
 
     /**
      * @throws ValidateEntityUnsuccessfulException
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
      */
     public function onKernelController(): void
     {
@@ -55,26 +57,26 @@ class RefreshTokenEventListener implements EventSubscriberInterface
 
         $userToken = $user->getUserTokenReferences();
 
-        $date = new DateTime('now', new DateTimeZone('Europe/Warsaw'));
+        $date = new DateTime('now');
         $date = $date->getTimestamp();
         $save = false;
 
         if ($userToken->getRefreshMobileToken()->getTimestamp() <= $date) {
-            $userToken->setRefreshMobileToken(new DateTime('+10 day'), new DateTimeZone('Europe/Warsaw'));
+            $userToken->setRefreshMobileToken(new DateTime('+10 day'));
             $userToken->setPrivateMobileToken((string) Uuid::uuid4());
 
             $save = true;
         }
 
         if ($userToken->getRefreshWebToken()->getTimestamp() <= $date) {
-            $userToken->setRefreshWebToken(new DateTime('+1 day'), new DateTimeZone('Europe/Warsaw'));
+            $userToken->setRefreshWebToken(new DateTime('+1 day'));
             $userToken->setPrivateWebToken((string) Uuid::uuid4());
 
             $save = true;
         }
 
         if ($userToken->getRefreshPublicToken()->getTimestamp() <= $date) {
-            $userToken->setRefreshPublicToken(new DateTime('+30 day'), new DateTimeZone('Europe/Warsaw'));
+            $userToken->setRefreshPublicToken(new DateTime('+30 day'));
             $userToken->setPublicToken((string) Uuid::uuid4());
 
             $save = true;
@@ -82,21 +84,12 @@ class RefreshTokenEventListener implements EventSubscriberInterface
 
 
         if ($save) {
-            $this->saveUserToken($userToken);
-        }
-    }
+            if (\count($this->validator->validate($userToken)) > 0) {
+                throw new ValidateEntityUnsuccessfulException('Entity UserToken is failed in: ' . \get_class($this));
+            }
 
-    /**
-     * @param UserToken $userToken
-     * @throws ValidateEntityUnsuccessfulException
-     */
-    private function saveUserToken(UserToken $userToken) :void
-    {
-        if (\count($this->validator->validate($userToken)) > 0) {
-            throw new ValidateEntityUnsuccessfulException('Entity UserToken is failed in: ' . \get_class($this));
+            $this->userTokenRepository->save($userToken);
         }
-        $this->entityManager->persist($userToken);
-        $this->entityManager->flush();
     }
 
     public static function getSubscribedEvents(): array

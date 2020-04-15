@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Tests\NullObject\Repository;
+namespace App\Tests\Repository\NullObject;
 
-use App\NullObject\Repository\NullMessageRepository;
+use App\Repository\NullObject\NullMessageRepository;
 use PHPUnit\Framework\TestCase;
 
 /**

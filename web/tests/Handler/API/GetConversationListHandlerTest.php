@@ -7,12 +7,14 @@ use App\Command\API\GetConversationListCommand;
 use App\Entity\Conversation;
 use App\Entity\Message;
 use App\Entity\User;
+use App\Event\GetConversationListEvent;
 use App\Handler\API\GetConversationListHandler;
 use App\Repository\MessageRepository;
 use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use \Mockery;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class GetConversationListCommandTest
@@ -23,9 +25,14 @@ class GetConversationListHandlerTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     /**
+     * @var array
+     */
+    private $result;
+
+    /**
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function testExecute()
+    public function testExecute(): void
     {
         //Other user who are this conversation
 
@@ -58,17 +65,26 @@ class GetConversationListHandlerTest extends TestCase
         $messageRepository = Mockery::mock(MessageRepository::class);
         $messageRepository->shouldReceive('getLastMessageByConversationId')->once()->andReturn($message);
 
+        $eventDispatcher = Mockery::mock(EventDispatcherInterface::class);
+        $eventDispatcher->shouldReceive('dispatch')->withArgs(function (string $name, $event) {
+            if ($event instanceof GetConversationListEvent && $name === GetConversationListEvent::NAME) {
+                $this->result = $event->getConversations();
+                return true;
+            }
+
+            return false;
+        })->once();
+
         //Tests
 
         $getConversationListCommand = new GetConversationListCommand($user);
 
-        $getConversationListHandler = new GetConversationListHandler($messageRepository);
+        $getConversationListHandler = new GetConversationListHandler($messageRepository, $eventDispatcher);
         $getConversationListHandler->handle($getConversationListCommand);
 
-        $result = $getConversationListHandler->getResult();
-        $this->assertNotEmpty($result);
-        $this->assertEquals('FirstName Surname', $result[0]['fullName']);
-        $this->assertEquals('Hello World', $result[0]['lastMessage']);
-        $this->assertEquals('conversation_token', $result[0]['conversationId']);
+        $this->assertNotEmpty($this->result);
+        $this->assertEquals('FirstName Surname', $this->result[0]['fullName']);
+        $this->assertEquals('Hello World', $this->result[0]['lastMessage']);
+        $this->assertEquals('conversation_token', $this->result[0]['conversationId']);
     }
 }
